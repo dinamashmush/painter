@@ -4,7 +4,6 @@ from math import *
 from typing import *
 from painter import Painter
 from enums import State
-WIDTH, HEIGHT = 640, 480
 
 
 
@@ -17,8 +16,8 @@ class Application(tk.Frame):
         super().__init__(master)
         self.master = master
         self.pack()
-        self.color = tk.StringVar(self, "#000000")
-        self.state = tk.StringVar(self, State.SELECT.value)
+        self.color = tk.StringVar(self, "#ffffff")
+        self.state = tk.StringVar(self, State.PAINT.value)
 
         self.create_widgets()
 

@@ -1,10 +1,11 @@
 from typing import *
 import tkinter as tk
 from enums import *
+from stroke import Stroke
 
 
 class Painter(tk.Frame):
-    def __init__(self, root, color: tk.StringVar, state: tk.StringVar) -> None:
+    def __init__(self, root, color: tk.StringVar, state: tk.StringVar, width: tk.IntVar) -> None:
         super().__init__(root)
 
         self.color = color
@@ -14,12 +15,11 @@ class Painter(tk.Frame):
         self.canvas = tk.Canvas(root, width=640, height=480, bg="#000000")
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.line_style: LineStyle = LineStyle.SOLID
-        self.width = 3
+        self.width = width
 
         self.curr_stroke: Union[Literal[None], Stroke] = None
-        self.active_selection_start: Union[Tuple[int,
-                                                 int], Literal[None]] = None
-        self.active_selection_end: Union[Tuple[int, int], Literal[None]] = None
+        self.active_select_start: Union[Tuple[int, int], Literal[None]] = None
+        self.active_select_end: Union[Tuple[int, int], Literal[None]] = None
         self.active_selection_rect: Union[int, Literal[None]] = None
         self.selected_strokes: List[int] = []  # indexes of selected strokes
         self.selected_rect: Union[Literal[None], int] = None
@@ -51,31 +51,37 @@ class Painter(tk.Frame):
                 self.prev_x = event.x
                 self.prev_y = event.y
                 return
+            
         if self.state.get() == State.PAINT.value:
             if not self.curr_stroke:
                 new_stroke = Stroke(
-                    event.x, event.y, self.line_style, self.color.get(), self.width, self.canvas)
+                    event.x, event.y, self.line_style, self.color.get(), self.width.get(), self.canvas)
                 self.strokes.append(new_stroke)
                 self.curr_stroke = new_stroke
             else:
                 self.curr_stroke.continue_stroke(event.x, event.y)
         elif self.state.get() == State.SELECT.value:
 
-            if not self.active_selection_start:
+            if not self.active_select_start:
                 self.remove_select()
-                self.active_selection_start = (event.x, event.y)
+                self.active_select_start = (event.x, event.y)
             else:
                 if self.active_selection_rect:
                     self.canvas.delete(self.active_selection_rect)
                 self.active_selection_rect = self.canvas.create_rectangle(
-                    *self.active_selection_start, event.x, event.y, outline="#fff")
-                self.active_selection_end = (event.x, event.y)
+                    *self.active_select_start, event.x, event.y, outline="#fff")
+                self.active_select_end = (event.x, event.y)
 
     def remove_select(self) -> None:
         self.selected_strokes = []
         if (self.selected_rect):
             self.canvas.delete(self.selected_rect)
 
+    def handle_left_click(self, event) -> None:
+        if not self.selected_rect_locs: return
+        if not (event.x >= self.selected_rect_locs[0] and event.x <= self.selected_rect_locs[2] and event.y >= self.selected_rect_locs[1] and event.y <= self.selected_rect_locs[3]):
+            self.remove_select()
+    
     def handle_stop_drag(self) -> None:
         if self.drag_strokes:
             self.drag_strokes = False
@@ -85,16 +91,17 @@ class Painter(tk.Frame):
             if self.active_selection_rect:
                 self.canvas.delete(self.active_selection_rect)
             self.select_by_rect()
-            self.active_selection_start = None
-            self.active_selection_end = None
+            self.active_select_start = None
+            self.active_select_end = None
+        
 
     def select_by_rect(self) -> None:
-        if not self.active_selection_start or not self.active_selection_end:
+        if not self.active_select_start or not self.active_select_end:
             return
-        rect_range_x = range(min(self.active_selection_start[0], self.active_selection_end[0]),
-                             max(self.active_selection_start[0], self.active_selection_end[0]))
-        rect_range_y = range(min(self.active_selection_start[1], self.active_selection_end[1]),
-                             max(self.active_selection_start[1], self.active_selection_end[1]))
+        rect_range_x = range(min(self.active_select_start[0], self.active_select_end[0]),
+                             max(self.active_select_start[0], self.active_select_end[0]))
+        rect_range_y = range(min(self.active_select_start[1], self.active_select_end[1]),
+                             max(self.active_select_start[1], self.active_select_end[1]))
 
         selected_rect = [(i, j) for i in rect_range_x for j in rect_range_y]
 
@@ -114,45 +121,3 @@ class Painter(tk.Frame):
         self.selected_rect = self.canvas.create_rectangle(
             min_x, min_y, max_x, max_y, outline="green")
         self.selected_rect_locs = (min_x, min_y,max_x, max_y)
-
-
-class Stroke():
-    def __init__(self, x: int, y: int, line_style: LineStyle, color: str, width: int, canvas: tk.Canvas) -> None:
-        self.line_style = line_style
-        self.color = color
-        self.coordinates: List[Tuple[int, int]] = [(x, y)]
-        self.width = width
-        self.selected = False
-        self.canvas = canvas
-        self.lines: List[int] = []
-
-    def continue_stroke(self, x: int, y: int) -> None:
-        
-        line = self.canvas.create_line(*self.coordinates[-1],
-                                        x, y,
-                                        fill=self.color,
-                                        width=self.width,
-                                        smooth=True)
-        self.lines.append(line)
-        self.coordinates.append((x, y))
-
-    def set_selected(self, select: bool) -> None:
-        self.selected = select
-    def move(self, dx:int, dy:int) -> None:
-        for line in self.lines:
-            self.canvas.delete(line)
-        self.lines = []
-        new_coordinates: List[Tuple[int, int]] = []
-        for i, co in enumerate(self.coordinates):
-            x = co[0] + dx
-            y = co[1] + dy
-            if i != 0:
-                line = self.canvas.create_line(*new_coordinates[i-1], x, y, fill=self.color)
-                self.lines.append(line)
-            new_coordinates.append((x, y))
-        
-        self.coordinates = new_coordinates
-        
-    
-        
-    

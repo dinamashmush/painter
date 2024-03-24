@@ -5,12 +5,13 @@ from PIL import Image, ImageTk
 from enums import State
 
 class ToolBar(tk.Frame):
-    def __init__(self, root, color: tk.StringVar, state: tk.StringVar):
+    def __init__(self, root, color: tk.StringVar, state: tk.StringVar, width: tk.IntVar):
         super().__init__(root)
         self.root = root
         self.pack()
         self.color = color
         self.state = state
+        self.width = width
         self.create_widgets()
 
     def create_widgets(self) -> None:
@@ -35,6 +36,20 @@ class ToolBar(tk.Frame):
         self.select_icon = ImageTk.PhotoImage(resize_select_icon)
         self.select_button = tk.Button(self, text="Select", image=self.select_icon, compound="left", command=change_selected_state)
         self.select_button.pack()
+        
+        validatecommand = (self.register(self.validate_num))
+        self.width_input = tk.Spinbox(self, textvariable=self.width, from_=1, to=9, increment=1, validatecommand=(validatecommand,'%P'), validate="all") 
+        self.width_input.pack()
+
+
+    def validate_num(self, P):
+        if len(P)>1:
+            return False
+        if str.isdigit(P) or P == "":
+            return True
+        else:
+            return False
+
         
 
     def update_color(self) -> None:

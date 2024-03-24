@@ -7,10 +7,6 @@ from enums import State
 
 
 
-def left_click(event):
-    print("Left button clicked")
-
-
 class Application(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
@@ -18,12 +14,13 @@ class Application(tk.Frame):
         self.pack()
         self.color = tk.StringVar(self, "#ffffff")
         self.state = tk.StringVar(self, State.PAINT.value)
+        self.width = tk.IntVar(self, 3)
 
         self.create_widgets()
 
     def create_widgets(self):
-        self.painter = Painter(self, self.color, self.state)
-        self.toolbar = ToolBar(self, self.color, self.state)
+        self.painter = Painter(self, color=self.color, state=self.state, width=self.width)
+        self.toolbar = ToolBar(self, color=self.color, state=self.state, width=self.width)
         
 
 root = tk.Tk()
@@ -32,6 +29,9 @@ root = tk.Tk()
 
 def drag(event):
     app.painter.handle_drag(event)
+
+def left_click(event):
+    app.painter.handle_left_click(event)
 
 def button_release(event):
     app.painter.handle_stop_drag()

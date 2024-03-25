@@ -9,4 +9,4 @@ class LineStyle(enum.Enum):
 class State(enum.Enum):
     PAINT = "1"
     SELECT = "2"
-    ERASE = "3"
+    # ERASE = "3"

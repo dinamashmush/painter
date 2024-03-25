@@ -36,8 +36,12 @@ def left_click(event):
 def button_release(event):
     app.painter.handle_stop_drag()
 
+def right_click(event):
+    app.painter.handle_right_click(event)
+
 root.bind('<B1-Motion>', drag)
 root.bind('<Button-1>', left_click)
 root.bind('<ButtonRelease-1>', button_release)
+root.bind('<Button-3>', right_click)
 app = Application(master=root)
 app.mainloop()

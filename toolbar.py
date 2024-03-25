@@ -23,23 +23,32 @@ class ToolBar(tk.Frame):
                    command = self.update_color)
         self.color_btn.pack()
         
-        def change_selected_state():
-            if self.state.get() == State.SELECT.value: 
+        def change_selected_state(state: str):
+            if self.state.get() == state: 
                 self.state.set(State.PAINT.value)
                 self.select_button.config(relief="raised")
             else:
-                self.state.set(State.SELECT.value)
+                self.state.set(state)
                 self.select_button.config(relief="sunken")
+        
+        
         
         select_icon_image = Image.open("./assets/3793488.png")
         resize_select_icon = select_icon_image.resize((16, 16))
         self.select_icon = ImageTk.PhotoImage(resize_select_icon)
-        self.select_button = tk.Button(self, text="Select", image=self.select_icon, compound="left", command=change_selected_state)
+        self.select_button = tk.Button(self, text="Select", image=self.select_icon, compound="left", command=lambda: change_selected_state(State.SELECT.value))
         self.select_button.pack()
         
         validatecommand = (self.register(self.validate_num))
         self.width_input = tk.Spinbox(self, textvariable=self.width, from_=1, to=9, increment=1, validatecommand=(validatecommand,'%P'), validate="all") 
         self.width_input.pack()
+        
+        # self.erase_btn = tk.Button(self, text="Erase", command=lambda: change_selected_state(State.ERASE.value))
+        # self.erase_btn.pack()
+    
+    def create_widgets_selected(self):
+        self.delete_btn = tk.Button(self, text="DELETE", command=self.delete_selected)
+        self.delete_btn.pack()
 
 
     def validate_num(self, P):

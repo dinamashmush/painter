@@ -2,6 +2,7 @@ from typing import *
 import tkinter as tk
 from enums import *
 from stroke import Stroke
+import math
 
 
 class Painter(tk.Frame):
@@ -14,6 +15,7 @@ class Painter(tk.Frame):
         self.strokes: List[Stroke] = []
         self.canvas = tk.Canvas(root, width=640, height=480, bg="#000000")
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
         self.line_style: LineStyle = LineStyle.SOLID
         self.width = width
 
@@ -29,20 +31,49 @@ class Painter(tk.Frame):
         self.prev_x = 0
         self.prev_y = 0
 
+        self.selected_menu = tk.Menu(self, tearoff=0)
+        # self.m.add_command(label="Paste")
+        self.selected_menu.add_command(label="Copy")
+        self.selected_menu.add_command(label="Change Properties")
+        self.selected_menu.add_command(label="Move Forward", command=lambda: self.move_forward_backward_selected(True))
+        self.selected_menu.add_command(label="Move Backward", command=lambda:self.move_forward_backward_selected(False))
+        self.selected_menu.add_separator()
+        self.selected_menu.add_command(label="Delete", command=self.delete_selected)
+        
+    def move_forward_backward_selected(self, forward:bool) -> None:
+        selected_strokes = [self.strokes[i] for i in self.selected_strokes]
+        not_selected_strokes = [stroke for i, stroke in enumerate(self.strokes) if i not in self.selected_strokes]
+        
+        self.strokes = not_selected_strokes + selected_strokes if forward else selected_strokes + not_selected_strokes
+        self.selected_strokes = list(range(len(self.strokes) - len(selected_strokes), len(self.strokes))) if forward else list(range(len(selected_strokes)))
+        for stroke in self.strokes:
+            stroke.paint()
+        
+        
+
     def handle_drag(self, event):
         if self.drag_strokes:
-            dx =  event.x - self.prev_x
-            dy =  event.y - self.prev_y
+            dx = event.x - self.prev_x
+            dy = event.y - self.prev_y
 
             self.canvas.delete(self.selected_rect)
-            self.selected_rect_locs = self.selected_rect_locs[0] + dx, self.selected_rect_locs[1] + dy, self.selected_rect_locs[2] + dx, self.selected_rect_locs[3] + dy
-            self.selected_rect = self.canvas.create_rectangle(*self.selected_rect_locs, outline="green")
-            for stroke in [self.strokes[i] for i in self.selected_strokes]:
-                stroke.move(dx, dy)
+            self.selected_rect_locs = self.selected_rect_locs[0] + dx, self.selected_rect_locs[1] + \
+                dy, self.selected_rect_locs[2] + \
+                dx, self.selected_rect_locs[3] + dy
+            self.selected_rect = self.canvas.create_rectangle(
+                *self.selected_rect_locs, outline="green")
+            for i, stroke in enumerate(self.strokes):
+                if i < min(self.selected_strokes): 
+                    continue
+                if i in self.selected_strokes:
+                    stroke.move(dx, dy)
+                else:
+                    stroke.paint()
+            # for stroke in [self.strokes[i] for i in self.selected_strokes]:
+            #     stroke.move(dx, dy)
             self.prev_x = event.x
             self.prev_y = event.y
 
-                
             return
 
         if len(self.selected_strokes):
@@ -51,7 +82,7 @@ class Painter(tk.Frame):
                 self.prev_x = event.x
                 self.prev_y = event.y
                 return
-            
+
         if self.state.get() == State.PAINT.value:
             if not self.curr_stroke:
                 new_stroke = Stroke(
@@ -72,16 +103,37 @@ class Painter(tk.Frame):
                     *self.active_select_start, event.x, event.y, outline="#fff")
                 self.active_select_end = (event.x, event.y)
 
+        # elif self.state.get() == State.ERASE.value:
+        #     for stroke in self.strokes or stroke:
+        #         if (event.x, event.y) in stroke.coordinates:
+        #             stroke.delete()
+        #             index = stroke.coordinates.index((event.x, event.y))
+        #             if index != (len(stroke.coordinates) - 1):
+        #                 new_stroke2 = Stroke(
+        #                     *stroke.coordinates[index+1], stroke.line_style, 'red', stroke.width, self.canvas)
+        #                 new_stroke2.coordinates = stroke.coordinates[index + 1:]
+        #                 new_stroke2.paint()
+        #                 self.strokes.append(new_stroke2)
+
+        #             new_stroke1 = Stroke(
+        #                 *stroke.coordinates[0], stroke.line_style, 'blue', stroke.width, self.canvas)
+        #             new_stroke1.coordinates = stroke.coordinates[:index]
+        #             new_stroke1.paint()
+        #             self.strokes.append(new_stroke1)
+
+        #             self.strokes.remove(stroke)
+
     def remove_select(self) -> None:
         self.selected_strokes = []
         if (self.selected_rect):
             self.canvas.delete(self.selected_rect)
 
     def handle_left_click(self, event) -> None:
-        if not self.selected_rect_locs: return
+        if not self.selected_rect_locs:
+            return
         if not (event.x >= self.selected_rect_locs[0] and event.x <= self.selected_rect_locs[2] and event.y >= self.selected_rect_locs[1] and event.y <= self.selected_rect_locs[3]):
             self.remove_select()
-    
+
     def handle_stop_drag(self) -> None:
         if self.drag_strokes:
             self.drag_strokes = False
@@ -93,7 +145,6 @@ class Painter(tk.Frame):
             self.select_by_rect()
             self.active_select_start = None
             self.active_select_end = None
-        
 
     def select_by_rect(self) -> None:
         if not self.active_select_start or not self.active_select_end:
@@ -120,4 +171,17 @@ class Painter(tk.Frame):
         min_y, max_y = min(stroke_y_coordinates), max(stroke_y_coordinates)
         self.selected_rect = self.canvas.create_rectangle(
             min_x, min_y, max_x, max_y, outline="green")
-        self.selected_rect_locs = (min_x, min_y,max_x, max_y)
+        self.selected_rect_locs = (min_x, min_y, max_x, max_y)
+
+    def handle_right_click(self, event: tk.Event) -> None:
+        if len(self.selected_strokes) > 0 and self.selected_rect_locs:
+            if event.x > self.selected_rect_locs[0] and event.x < self.selected_rect_locs[2] and event.y > self.selected_rect_locs[1] and event.y < self.selected_rect_locs[3]:
+                try:
+                    self.selected_menu.tk_popup(event.x_root, event.y_root)
+                finally:
+                    self.selected_menu.grab_release()
+    def delete_selected(self) -> None:
+        for stroke in [self.strokes[i] for i in self.selected_strokes]:
+            stroke.delete()
+            self.strokes.remove(stroke)
+        self.remove_select()

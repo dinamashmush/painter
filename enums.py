@@ -9,4 +9,12 @@ class LineStyle(enum.Enum):
 class State(enum.Enum):
     PAINT = "1"
     SELECT = "2"
+    RECT = "3"
+    OVAL = "4"
+    TEXT = "5"
+    POLYGON = "6"
     # ERASE = "3"
+    
+class Shape(enum.Enum):
+    RECT = "1"
+    OVAL = "2"

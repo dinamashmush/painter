@@ -1,49 +1,76 @@
 import tkinter as tk
 from tkinter import colorchooser
 from typing import *
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageGrab
 from enums import State
 
 class ToolBar(tk.Frame):
-    def __init__(self, root, color: tk.StringVar, state: tk.StringVar, width: tk.IntVar):
+    def __init__(self, root, color: tk.StringVar, state: tk.StringVar, width: tk.IntVar, export: Dict[str, Callable]):
         super().__init__(root)
         self.root = root
-        self.pack()
+        self.grid(row=1, column=2)
         self.color = color
         self.state = state
         self.width = width
+        self.export = export
         self.create_widgets()
+        
+    def change_selected_state(self, state: str, btn: tk.Button) -> None:
+        for button in [self.select_button, self.oval_btn, self.rect_btn, self.text_btn]:
+            button.config(relief="raised")
+        if self.state.get() == state: 
+            self.state.set(State.PAINT.value)
+            btn.config(relief="raised")
+        else:
+            self.state.set(state)
+            btn.config(relief="sunken")
+
 
     def create_widgets(self) -> None:
+        
+        self.export_menu = tk.Menu(self, tearoff=0)
+        self.export_menu.add_command(label="png", command=self.export["png"])
+        self.export_menu.add_command(label="svg", command=self.export["svg"])
+        self.export_menu.add_command(label="eps", command=self.export["eps"])
+
+        def open_export_menu():
+            try:
+                self.export_menu.tk_popup(self.export_btn.winfo_rootx(), self.export_btn.winfo_rooty())
+                # pass
+            finally:
+                self.export_menu.grab_release()
+
+        
+        self.export_btn = tk.Button(self, text="Export As", command=open_export_menu)
+        self.export_btn.pack(pady=10)
 
         data = bytes.fromhex(" ".join([self.color.get()[1:]]*(16*16)))
         img = Image.frombuffer("RGB", (16, 16), data, "raw", "RGB", 0, 1)
         self.color_img = ImageTk.PhotoImage(img)
-        self.color_btn: tk.Button = tk.Button(self.root, text = "Color", image=self.color_img, compound="left",
+        self.color_btn: tk.Button = tk.Button(self, text = "Color", image=self.color_img, compound="left",
                    command = self.update_color)
-        self.color_btn.pack()
-        
-        def change_selected_state(state: str):
-            if self.state.get() == state: 
-                self.state.set(State.PAINT.value)
-                self.select_button.config(relief="raised")
-            else:
-                self.state.set(state)
-                self.select_button.config(relief="sunken")
-        
+        self.color_btn.pack(pady=10)
+    
         
         
         select_icon_image = Image.open("./assets/3793488.png")
         resize_select_icon = select_icon_image.resize((16, 16))
         self.select_icon = ImageTk.PhotoImage(resize_select_icon)
-        self.select_button = tk.Button(self, text="Select", image=self.select_icon, compound="left", command=lambda: change_selected_state(State.SELECT.value))
-        self.select_button.pack()
+        self.select_button = tk.Button(self, text="Select", image=self.select_icon, compound="left", command=lambda: self.change_selected_state(State.SELECT.value, self.select_button))
+        self.select_button.pack(pady=10)
         
         validatecommand = (self.register(self.validate_num))
         self.width_input = tk.Spinbox(self, textvariable=self.width, from_=1, to=9, increment=1, validatecommand=(validatecommand,'%P'), validate="all") 
-        self.width_input.pack()
+        self.width_input.pack(pady=10)
         
-        # self.erase_btn = tk.Button(self, text="Erase", command=lambda: change_selected_state(State.ERASE.value))
+        self.create_shapes_btns()
+        
+        text_icon_image = Image.open("./assets/icons-text.png")
+        resize_text_icon = text_icon_image.resize((16, 16))
+        self.text_icon = ImageTk.PhotoImage(resize_text_icon)
+        self.text_btn = tk.Button(self, image=self.text_icon, command=lambda: self.change_selected_state(State.TEXT.value, self.text_btn))
+        self.text_btn.pack()
+        # self.erase_btn = tk.Button(self, text="Erase", command=lambda: self.change_selected_state(State.ERASE.value))
         # self.erase_btn.pack()
     
     def create_widgets_selected(self):
@@ -59,6 +86,28 @@ class ToolBar(tk.Frame):
         else:
             return False
 
+    def create_shapes_btns(self) -> None:
+        
+        self.shapes_frame = tk.Frame(self)
+        self.shapes_frame.pack()
+        
+        oval_icon_image = Image.open("./assets/icons-circle.png")
+        resize_oval_icon = oval_icon_image.resize((16, 16))
+        self.resize_oval_icon = ImageTk.PhotoImage(resize_oval_icon)
+        self.oval_btn = tk.Button(self.shapes_frame, image=self.resize_oval_icon, command=lambda: self.change_selected_state(State.OVAL.value, self.oval_btn))
+        self.oval_btn.pack(side=tk.LEFT)
+        
+        rect_icon_image = Image.open("./assets/icons-square.png")
+        resize_rect_icon = rect_icon_image.resize((16, 16))
+        self.resize_rect_icon = ImageTk.PhotoImage(resize_rect_icon)
+        self.rect_btn = tk.Button(self.shapes_frame, image=self.resize_rect_icon, command=lambda: self.change_selected_state(State.RECT.value, self.rect_btn))
+        self.rect_btn.pack(side=tk.LEFT)
+
+        polygon_icon_image = Image.open("./assets/polygon.png")
+        resize_polygon_icon = polygon_icon_image.resize((16, 16))
+        self.resize_polygon_icon = ImageTk.PhotoImage(resize_polygon_icon)
+        self.polygon_btn = tk.Button(self.shapes_frame, image=self.resize_polygon_icon, command=lambda: self.change_selected_state(State.POLYGON.value, self.polygon_btn))
+        self.polygon_btn.pack(side=tk.LEFT)
         
 
     def update_color(self) -> None:

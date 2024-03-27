@@ -154,7 +154,6 @@ def test_polygon_stroke():
 def test_calculate_oval_coords():
     x1, y1, x2, y2 = 50, 50, 150, 100
     coords = calculate_oval_coords(x1, y1, x2, y2)
-    print(coords)
     assert len(coords) == 100, "Number of calculated points is incorrect"
     assert all([isinstance(coord, tuple) and len(coord) == 2 for coord in coords]), "Coordinates format is incorrect"
 
@@ -163,4 +162,3 @@ def test_calculate_oval_coords():
     assert len(coords) == 100, "Number of calculated points is incorrect"
     assert all(isinstance(coord, tuple) and len(coord) == 2 for coord in coords), "Coordinates format is incorrect"
 
-    print("All tests passed successfully!")

@@ -6,7 +6,7 @@ from copy import copy
 
 
 class Painter(tk.Frame):
-    def __init__(self, master, root, color: tk.StringVar, fill: tk.StringVar, state: tk.StringVar, width: tk.IntVar) -> None:
+    def __init__(self, master, root, color: tk.StringVar, fill: tk.StringVar, state: tk.StringVar, width: tk.IntVar, font: tk.StringVar, font_size: tk.IntVar) -> None:
         super().__init__(master)
 
         self.grid(row=1, column=1)
@@ -16,6 +16,8 @@ class Painter(tk.Frame):
         self.color = color
         self.fill = fill
         self.state = state
+        self.font = font
+        self.font_size = font_size
 
         self.strokes: List[Stroke] = []
         self.canvas = tk.Canvas(self, width=640, height=480, bg="#000000")
@@ -62,6 +64,8 @@ class Painter(tk.Frame):
 
         self.canvas.bind('<Button-1>', self.handle_left_click_canvas)
         self.canvas.bind('<Motion>', self.handle_move_canvas)
+        self.canvas.bind('<B1-Motion>', self.handle_drag)
+
 
     def move_forward_backward_selected(self, forward: bool) -> None:
         not_selected_strokes = [
@@ -138,7 +142,7 @@ class Painter(tk.Frame):
         elif self.state.get() == State.RECT.value:
             if not self.curr_stroke:
                 new_stroke = ShapeStroke(event.x, event.y, self.line_style, self.color.get(
-                ), self.width.get(), self.canvas,self.fill.get() if len(self.fill.get()) > 0 else None, Shape.RECT)
+                ), self.width.get(), self.canvas,self.fill.get() , Shape.RECT)
                 self.strokes.append(new_stroke)
                 self.curr_stroke = new_stroke
             else:
@@ -146,11 +150,20 @@ class Painter(tk.Frame):
         elif self.state.get() == State.OVAL.value:
             if not self.curr_stroke:
                 new_stroke = ShapeStroke(event.x, event.y, self.line_style, self.color.get(
-                ), self.width.get(), self.canvas, self.fill.get() if len(self.fill.get()) > 0 else None, Shape.OVAL)
+                ), self.width.get(), self.canvas, self.fill.get(), Shape.OVAL)
                 self.strokes.append(new_stroke)
                 self.curr_stroke = new_stroke
             else:
                 self.curr_stroke.continue_stroke(event.x, event.y)
+        elif self.state.get() == State.TRIANGLE.value:
+            if not self.curr_stroke:
+                new_stroke = TriangleStroke(event.x, event.y, self.line_style, self.color.get(
+                ), self.width.get(), self.canvas, self.fill.get(), Shape.TRIANGLE)
+                self.strokes.append(new_stroke)
+                self.curr_stroke = new_stroke
+            else:
+                self.curr_stroke.continue_stroke(event.x, event.y)
+
         elif self.state.get() == State.SELECT.value:
 
             if not self.active_select_start:
@@ -197,7 +210,6 @@ class Painter(tk.Frame):
 
     def remove_empty_text(self) -> None:
         if isinstance(self.curr_stroke, TextStroke):
-            print("kmcfkmckmfkmvfkmvfk")
             if self.curr_text_rect:
                 self.canvas.delete(self.curr_text_rect)
             if self.curr_stroke.text == "":
@@ -235,8 +247,7 @@ class Painter(tk.Frame):
     def create_text_stroke(self, event):
 
         new_stroke = TextStroke(event.x, event.y, self.line_style, self.color.get(
-        ), self.width.get(), self.canvas, "")
-        print(new_stroke)
+        ), self.width.get(), self.canvas, self.font.get(), self.font_size.get())
         self.strokes.append(new_stroke)
         self.curr_stroke = new_stroke
         self.text_index = 0
@@ -260,9 +271,6 @@ class Painter(tk.Frame):
         if self.drag_strokes:
             self.drag_strokes = False
         if self.state.get() != State.SELECT.value and self.state.get() != State.POLYGON.value:
-            if self.state.get() == State.OVAL.value:
-                if self.curr_stroke:
-                    self.curr_stroke.update_coordinates_on_end()
             self.curr_stroke = None
         else:
             if self.active_selection_rect:
@@ -298,6 +306,22 @@ class Painter(tk.Frame):
                         coordinates += calculate_points_on_line(
                             *stroke.coordinates[i - 1], *co)
                 if set(selected_rect).isdisjoint(coordinates):
+                    continue
+            elif isinstance(stroke, TriangleStroke):
+                is_in = False
+                for co in selected_rect:
+                    if is_point_inside_triangle(co, stroke.coordinates[0], ((stroke.coordinates[0][0] + stroke.coordinates[1][0])//2, stroke.coordinates[1][1]), (stroke.coordinates[1][0], stroke.coordinates[0][1])):
+                        is_in = True
+                        break
+                if not is_in: 
+                    continue
+            elif isinstance(stroke, ShapeStroke) and stroke.shape.value == Shape.OVAL.value:
+                is_in = False
+                for co in selected_rect:
+                    if is_point_inside_oval(co, stroke.coordinates[0], stroke.coordinates[1]):
+                        is_in = True
+                        break
+                if not is_in:
                     continue
 
             elif set(selected_rect).isdisjoint(stroke.coordinates):
@@ -372,3 +396,51 @@ def calculate_points_on_line(x0, y0, x1, y1, num_points=20):
     points = [(int(x), int(y)) for x, y in zip(x_values, y_values)]
 
     return points
+
+def is_point_inside_triangle(point, A, B, C):
+    """
+    Check if a point is inside a triangle using cross product method.
+
+    Arguments:
+    point : tuple (x, y) - Coordinates of the point to be checked.
+    A, B, C : tuple (x, y) - Coordinates of the vertices of the triangle.
+
+    Returns:
+    bool: True if the point is inside the triangle, False otherwise.
+    """
+    def sign(p1, p2, p3):
+        return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1])
+
+    b1 = sign(point, A, B) < 0.0
+    b2 = sign(point, B, C) < 0.0
+    b3 = sign(point, C, A) < 0.0
+
+    return ((b1 == b2) and (b2 == b3))
+
+import math
+
+def is_point_inside_oval(point, rect_point1, rect_point2):
+    """
+    Check if a point is inside an oval given the bounding rectangle.
+
+    Arguments:
+    point: tuple (x, y) - Coordinates of the point to be checked.
+    rect_point1: tuple (x, y) - Coordinates of one of the points of the bounding rectangle.
+    rect_point2: tuple (x, y) - Coordinates of the opposite point of the bounding rectangle.
+
+    Returns:
+    bool: True if the point is inside the oval, False otherwise.
+    """
+    # Calculate center of the oval
+    center = ((rect_point1[0] + rect_point2[0]) / 2, (rect_point1[1] + rect_point2[1]) / 2)
+
+    # Calculate major and minor axes lengths
+    major_axis = abs(rect_point2[0] - rect_point1[0]) / 2
+    minor_axis = abs(rect_point2[1] - rect_point1[1]) / 2
+
+    # Normalize point to oval coordinate system (centered at the oval's center)
+    normalized_point = (point[0] - center[0], point[1] - center[1])
+
+    # Use ellipse equation to check if the point is inside the oval
+    return (((normalized_point[0] ** 2) / (major_axis ** 2) + (normalized_point[1] ** 2) / (minor_axis ** 2))) <= 1
+    

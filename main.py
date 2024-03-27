@@ -9,7 +9,7 @@ from export_funcs import *
 
 
 class Application(tk.Frame):
-    def __init__(self, master=None):
+    def __init__(self, master=None) -> None:
         super().__init__(master)
         self.master = master
         self.grid(row=0, column=0)
@@ -17,16 +17,20 @@ class Application(tk.Frame):
         self.fill = tk.StringVar(self, "")
         self.state = tk.StringVar(self, State.PAINT.value)
         self.width = tk.IntVar(self, 3)
+        self.font = tk.StringVar(self, "Arial")
+        self.font_size = tk.IntVar(self, 14)
 
         self.create_widgets()
 
-    def create_widgets(self):
+    def create_widgets(self) -> None:
         self.painter = Painter(
             self,
             root=self.master,
             color=self.color,
             fill=self.fill,
             state=self.state,
+            font=self.font,
+            font_size=self.font_size,
             width=self.width)
 
         self.toolbar = ToolBar(
@@ -34,6 +38,8 @@ class Application(tk.Frame):
             color=self.color, 
             fill=self.fill,
             state=self.state, 
+            font=self.font,
+            font_size=self.font_size,
             width=self.width, 
             export={
             "png": lambda: export_to_png(self.painter.canvas, root),
@@ -58,8 +64,8 @@ class Application(tk.Frame):
 root = tk.Tk()
 
 
-def drag(event):
-    app.painter.handle_drag(event)
+# def drag(event):
+#     app.painter.handle_drag(event)
 
 
 def left_click(event):
@@ -82,7 +88,6 @@ root.geometry('830x580')
 root.resizable(False, False)
 
 
-root.bind('<B1-Motion>', drag)
 root.bind('<Button-1>', left_click)
 root.bind('<ButtonRelease-1>', button_release)
 root.bind('<Button-3>', right_click)

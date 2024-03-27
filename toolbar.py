@@ -3,9 +3,10 @@ from tkinter import colorchooser
 from typing import *
 from PIL import Image, ImageTk, ImageGrab
 from enums import State
+from text_options import TextOptions
 
 class ToolBar(tk.Frame):
-    def __init__(self, root, color: tk.StringVar, fill:tk.StringVar, state: tk.StringVar, width: tk.IntVar, export: Dict[str, Callable]):
+    def __init__(self, root, color: tk.StringVar, fill:tk.StringVar, state: tk.StringVar, width: tk.IntVar, export: Dict[str, Callable], font: tk.StringVar, font_size: tk.IntVar):
         super().__init__(root)
         self.root = root
         self.grid(row=1, column=2)
@@ -14,10 +15,12 @@ class ToolBar(tk.Frame):
         self.state = state
         self.width = width
         self.export = export
+        self.font = font
+        self.font_size = font_size
         self.create_widgets()
         
     def change_selected_state(self, state: str, btn: tk.Button) -> None:
-        for button in [self.select_button, self.oval_btn, self.rect_btn, self.text_btn]:
+        for button in [self.select_button, self.oval_btn, self.rect_btn, self.text_btn, self.polygon_btn, self.triangle_btn]:
             button.config(relief="raised")
         if self.state.get() == state: 
             self.state.set(State.PAINT.value)
@@ -76,17 +79,17 @@ class ToolBar(tk.Frame):
         
         self.create_shapes_btns()
         
+        self.text_frame = tk.Frame(self)
+        self.text_frame.pack(pady=20)
+                
         text_icon_image = Image.open("./assets/icons-text.png")
-        resize_text_icon = text_icon_image.resize((16, 16))
+        resize_text_icon = text_icon_image.resize((24, 24))
         self.text_icon = ImageTk.PhotoImage(resize_text_icon)
-        self.text_btn = tk.Button(self, image=self.text_icon, command=lambda: self.change_selected_state(State.TEXT.value, self.text_btn))
-        self.text_btn.pack()
-        # self.erase_btn = tk.Button(self, text="Erase", command=lambda: self.change_selected_state(State.ERASE.value))
-        # self.erase_btn.pack()
-    
-    def create_widgets_selected(self):
-        self.delete_btn = tk.Button(self, text="DELETE", command=self.delete_selected)
-        self.delete_btn.pack()
+        self.text_btn = tk.Button(self.text_frame, image=self.text_icon, command=lambda: self.change_selected_state(State.TEXT.value, self.text_btn))
+        self.text_btn.pack(side=tk.LEFT, padx=5)
+        
+        self.text_options_btn = tk.Button(self.text_frame,command=lambda: TextOptions(self.root, font_size=self.font_size, font=self.font), text="Text\nOptions")
+        self.text_options_btn.pack(side=tk.LEFT)
 
 
     def validate_num(self, P):
@@ -99,27 +102,36 @@ class ToolBar(tk.Frame):
 
     def create_shapes_btns(self) -> None:
         
-        self.shapes_frame = tk.Frame(self)
-        self.shapes_frame.pack()
+        self.shapes_frame1 = tk.Frame(self)
+        self.shapes_frame1.pack()
+        self.shapes_frame2 = tk.Frame(self)
+        self.shapes_frame2.pack()
+
         
         oval_icon_image = Image.open("./assets/icons-circle.png")
-        resize_oval_icon = oval_icon_image.resize((16, 16))
+        resize_oval_icon = oval_icon_image.resize((24, 24))
         self.resize_oval_icon = ImageTk.PhotoImage(resize_oval_icon)
-        self.oval_btn = tk.Button(self.shapes_frame, image=self.resize_oval_icon, command=lambda: self.change_selected_state(State.OVAL.value, self.oval_btn))
-        self.oval_btn.pack(side=tk.LEFT)
+        self.oval_btn = tk.Button(self.shapes_frame1, image=self.resize_oval_icon, command=lambda: self.change_selected_state(State.OVAL.value, self.oval_btn))
+        self.oval_btn.pack(side=tk.LEFT, padx=3, pady=3)
         
         rect_icon_image = Image.open("./assets/icons-square.png")
-        resize_rect_icon = rect_icon_image.resize((16, 16))
+        resize_rect_icon = rect_icon_image.resize((24, 24))
         self.resize_rect_icon = ImageTk.PhotoImage(resize_rect_icon)
-        self.rect_btn = tk.Button(self.shapes_frame, image=self.resize_rect_icon, command=lambda: self.change_selected_state(State.RECT.value, self.rect_btn))
-        self.rect_btn.pack(side=tk.LEFT)
+        self.rect_btn = tk.Button(self.shapes_frame1, image=self.resize_rect_icon, command=lambda: self.change_selected_state(State.RECT.value, self.rect_btn))
+        self.rect_btn.pack(side=tk.LEFT, padx=3, pady=3)
 
         polygon_icon_image = Image.open("./assets/polygon.png")
-        resize_polygon_icon = polygon_icon_image.resize((16, 16))
+        resize_polygon_icon = polygon_icon_image.resize((24, 24))
         self.resize_polygon_icon = ImageTk.PhotoImage(resize_polygon_icon)
-        self.polygon_btn = tk.Button(self.shapes_frame, image=self.resize_polygon_icon, command=lambda: self.change_selected_state(State.POLYGON.value, self.polygon_btn))
-        self.polygon_btn.pack(side=tk.LEFT)
+        self.polygon_btn = tk.Button(self.shapes_frame2, image=self.resize_polygon_icon, command=lambda: self.change_selected_state(State.POLYGON.value, self.polygon_btn))
+        self.polygon_btn.pack(side=tk.LEFT, padx=3, pady=3)
         
+        triangle_icon_image = Image.open("./assets/triangle.png")
+        resize_triangle_icon = triangle_icon_image.resize((24, 24))
+        self.resize_triangle_icon = ImageTk.PhotoImage(resize_triangle_icon)
+        self.triangle_btn = tk.Button(self.shapes_frame2, image=self.resize_triangle_icon, command=lambda: self.change_selected_state(State.TRIANGLE.value, self.triangle_btn))
+        self.triangle_btn.pack(side=tk.LEFT, padx=3, pady=3)
+         
 
     def pick_color(self) -> Union[Literal[None], Tuple[str, Image.Image]]:
         color = colorchooser.askcolor(title ="Choose color")[1]

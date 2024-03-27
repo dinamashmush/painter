@@ -105,26 +105,29 @@ class FreeStyleStroke(Stroke):
 
 
 class ShapeStroke(Stroke):
-    def __init__(self, x: int, y: int, line_style: LineStyle, color: str, width: int, canvas: tk.Canvas, shape:Shape):
+    def __init__(self, x: int, y: int, line_style: LineStyle, color: str, width: int, canvas: tk.Canvas, fill: Union[Literal[None], str], shape:Shape):
         super().__init__(x, y, line_style, color, width, canvas)
         self.shape: Shape = shape
+        self.fill = fill
         
     def continue_stroke(self, x: int, y: int) -> None:
         if len(self.tk_painting):
             self.canvas.delete(self.tk_painting[0])
         self.coordinates = [self.coordinates[0]]
         self.coordinates.append((x, y))
-        if self.shape.value == Shape.OVAL.value:
-            self.tk_painting = [self.canvas.create_oval(*self.coordinates[0], x, y, outline=self.color, width=self.width)]
-        elif self.shape.value == Shape.RECT.value:
-            self.tk_painting = [self.canvas.create_rectangle(*self.coordinates[0], x, y, outline=self.color, width=self.width)]
-            
+        self.paint()            
     
-    def paint(self):
+    def paint(self) -> None:
         if self.shape.value == Shape.OVAL.value:
-            self.tk_painting = [self.canvas.create_oval( *self.coordinates[0],*self.coordinates[1], outline=self.color, width=self.width)]
+            if self.fill:
+                self.tk_painting = [self.canvas.create_oval( *self.coordinates[0],*self.coordinates[1], outline=self.color, width=self.width, fill=self.fill)]
+            else:
+                self.tk_painting = [self.canvas.create_oval( *self.coordinates[0],*self.coordinates[1], outline=self.color, width=self.width)]
         elif self.shape.value == Shape.RECT.value:
-            self.tk_painting = [self.canvas.create_rectangle( *self.coordinates[0],*self.coordinates[1], outline=self.color, width=self.width)]
+            if self.fill:
+                self.tk_painting = [self.canvas.create_rectangle( *self.coordinates[0],*self.coordinates[1], outline=self.color, width=self.width, fill=self.fill)]
+            else:
+                self.tk_painting = [self.canvas.create_rectangle( *self.coordinates[0],*self.coordinates[1], outline=self.color, width=self.width)]
             
     def move(self, dx: int, dy: int) -> None:
         self.coordinates = [(co[0] + dx, co[1] + dy) for co in self.coordinates]
@@ -132,10 +135,11 @@ class ShapeStroke(Stroke):
         self.paint()
         
     def update_coordinates_on_end(self) -> None:
-        self.coordinates = self.coordinates + calculate_oval_coords(*self.coordinates[0], *self.coordinates[1])
+        if self.shape == Shape.OVAL.value:
+            self.coordinates = self.coordinates + calculate_oval_coords(*self.coordinates[0], *self.coordinates[1])
     
     def __copy__(self):
-        stroke =  ShapeStroke(self.coordinates[0], self.coordinates[1], line_style=self.line_style, color=self.color, width=self.width, canvas=self.canvas, shape=self.shape)
+        stroke =  ShapeStroke(self.coordinates[0], self.coordinates[1], line_style=self.line_style, color=self.color, width=self.width, canvas=self.canvas, shape=self.shape, fill=self.fill,)
         stroke.coordinates = self.coordinates
         return stroke
 
@@ -148,23 +152,27 @@ class TextStroke(Stroke):
     
     def add_char(self, char:str, index:int) -> None:
         self.text = self.text[:index]+char+self.text[index:]
-        self.canvas.delete(self.tk_painting[0])
-        self.tk_painting = [self.canvas.create_text(*self.coordinates[0], text=self.text, fill=self.color)]
+        self.paint()
     
     def remove_char(self, index:int):
-        self.text = self.text[:index]+self.text[index + 1:]
+
+        self.text = self.text[:index] + self.text[index + 1:]
+        self.paint()
+
+        
     
     def paint(self) -> None:
+        if len(self.tk_painting):
+            self.canvas.delete(self.tk_painting[0])
         self.tk_painting = [self.canvas.create_text(*self.coordinates[0], text=self.text, fill=self.color)]
     
     def move(self, dx: int, dy: int) -> None:
         self.coordinates = [(co[0] + dx, co[1] + dy) for co in self.coordinates]
-        self.canvas.delete(self.tk_painting[0])
         self.paint()
         
 
     def __copy__(self):
-        stroke =  TextStroke(self.coordinates[0], self.coordinates[1], line_style=self.line_style, color=self.color, width=self.width, canvas=self.canvas, text=self.text)
+        stroke =  TextStroke(*self.coordinates[0], line_style=self.line_style, color=self.color, width=self.width, canvas=self.canvas, text=self.text)
         return stroke
 
 
@@ -177,13 +185,17 @@ class PolygonStroke(Stroke):
         self.coordinates.append((x, y))
     
     def paint(self) -> None:
+        for painting in self.tk_painting:
+            self.canvas.delete(painting)
+        self.tk_painting = []
+            
         for i, co in enumerate(self.coordinates):
             if i != 0:
                 self.tk_painting.append(self.canvas.create_line(*self.coordinates[i-1], co[0], co[1], fill=self.color, width=self.width))
+    
+    
     def move(self, dx: int, dy: int) -> None:
         self.coordinates = [(co[0] + dx, co[1] + dy) for co in self.coordinates]
-        for painting in self.tk_painting:
-            self.canvas.delete(painting)
         self.paint()
         
     def __copy__(self):

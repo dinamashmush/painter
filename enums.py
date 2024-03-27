@@ -13,7 +13,6 @@ class State(enum.Enum):
     OVAL = "4"
     TEXT = "5"
     POLYGON = "6"
-    # ERASE = "3"
     
 class Shape(enum.Enum):
     RECT = "1"

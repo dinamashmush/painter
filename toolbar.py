@@ -5,11 +5,12 @@ from PIL import Image, ImageTk, ImageGrab
 from enums import State
 
 class ToolBar(tk.Frame):
-    def __init__(self, root, color: tk.StringVar, state: tk.StringVar, width: tk.IntVar, export: Dict[str, Callable]):
+    def __init__(self, root, color: tk.StringVar, fill:tk.StringVar, state: tk.StringVar, width: tk.IntVar, export: Dict[str, Callable]):
         super().__init__(root)
         self.root = root
         self.grid(row=1, column=2)
         self.color = color
+        self.fill = fill
         self.state = state
         self.width = width
         self.export = export
@@ -50,6 +51,16 @@ class ToolBar(tk.Frame):
         self.color_btn: tk.Button = tk.Button(self, text = "Color", image=self.color_img, compound="left",
                    command = self.update_color)
         self.color_btn.pack(pady=10)
+        
+        self.fill_frame = tk.Frame(self)
+        self.fill_frame.pack(pady=10)
+                
+        self.fill_btn: tk.Button = tk.Button(self.fill_frame, text = "Fill", compound="left",
+                   command = self.update_fill)
+        self.fill_btn.pack(side=tk.LEFT)
+        
+        self.no_fill_btn: tk.Button = tk.Button(self.fill_frame, text="no fill", command=lambda: self.update_fill(True))
+        self.no_fill_btn.pack(side=tk.LEFT)
     
         
         
@@ -110,14 +121,35 @@ class ToolBar(tk.Frame):
         self.polygon_btn.pack(side=tk.LEFT)
         
 
-    def update_color(self) -> None:
+    def pick_color(self) -> Union[Literal[None], Tuple[str, Image.Image]]:
         color = colorchooser.askcolor(title ="Choose color")[1]
-        if not color: return #!error message
-        self.color.set(color)
+        if not color: return None #!error message
         data = bytes.fromhex(" ".join([color[1:]]*(16*16)))
-        img = Image.frombuffer("RGB", (16, 16), data, "raw", "RGB", 0, 1)
+        return color, Image.frombuffer("RGB", (16, 16), data, "raw", "RGB", 0, 1)
+        
+
+    def update_color(self) -> None:
+        picked_color = self.pick_color()
+        if not picked_color:
+            return
+        color, img = picked_color
+        self.color.set(color)
         self.color_img = ImageTk.PhotoImage(img)
         self.color_btn.config(image=self.color_img)
 
+    def update_fill(self, delete: bool=False) -> None:
+        if delete:
+            color = ""
+            self.fill_btn.config(image="")
+        else:
+            picked_color = self.pick_color()
+            if not picked_color:
+                return
+            color, img = picked_color
+            self.fill_img = ImageTk.PhotoImage(img)
+            self.fill_btn.config(image=self.fill_img)
+        self.fill.set(color)
+
+    
     def say_hi(self):
         print("hi there, everyone!")

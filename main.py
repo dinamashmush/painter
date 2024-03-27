@@ -14,6 +14,7 @@ class Application(tk.Frame):
         self.master = master
         self.grid(row=0, column=0)
         self.color = tk.StringVar(self, "#ffffff")
+        self.fill = tk.StringVar(self, "")
         self.state = tk.StringVar(self, State.PAINT.value)
         self.width = tk.IntVar(self, 3)
 
@@ -21,18 +22,37 @@ class Application(tk.Frame):
 
     def create_widgets(self):
         self.painter = Painter(
-            self, root=self.master, color=self.color, state=self.state, width=self.width)
-        self.toolbar = ToolBar(self, color=self.color, state=self.state, width=self.width, export={
+            self,
+            root=self.master,
+            color=self.color,
+            fill=self.fill,
+            state=self.state,
+            width=self.width)
+
+        self.toolbar = ToolBar(
+            self, 
+            color=self.color, 
+            fill=self.fill,
+            state=self.state, 
+            width=self.width, 
+            export={
             "png": lambda: export_to_png(self.painter.canvas, root),
             "svg": lambda: export_to_svg(self.painter.canvas, root),
             "eps": lambda: export_to_eps(self.painter.canvas)
-        })
+            })
+        
         self.frame1 = tk.Frame(
-            self, width=50, height=self.master.winfo_height())
+            self, 
+            width=50, 
+            height=self.master.winfo_height())
+        
+        self.frame2 = tk.Frame(
+            self, 
+            height=30, 
+            width=self.master.winfo_width())
+        
         self.frame1.grid(column=0, row=1)
-        self.frame1 = tk.Frame(
-            self, height=30, width=self.master.winfo_width())
-        self.frame1.grid(column=0, row=0)
+        self.frame2.grid(column=0, row=0)
 
 
 root = tk.Tk()
@@ -56,7 +76,6 @@ def right_click(event):
 
 def handle_key_press(event):
     app.painter.handle_typing(event)
-
 
 
 root.geometry('830x580')

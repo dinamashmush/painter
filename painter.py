@@ -373,7 +373,13 @@ class Painter(tk.Frame):
                             if not isinstance(text_stroke, TextStroke): continue
                             text_stroke.font = font
                             text_stroke.font_size = font_size
-                            text_stroke.paint()
+                        for stroke in self.strokes:
+                            if stroke in self.selected_strokes and isinstance(stroke, TextStroke):
+                                stroke.paint()
+                            else:
+                                for i in stroke.tk_painting:
+                                    self.canvas.tag_raise(i)
+
                             
                     self.selected_menu.add_command(label="Text Properties", command=lambda: 
                         TextOptions(self.root, 
@@ -392,7 +398,12 @@ class Painter(tk.Frame):
                             shape_stroke.color = color
                         
                             shape_stroke.width = width
-                            shape_stroke.paint()
+                        for stroke in self.strokes:
+                            if stroke in self.selected_strokes and not isinstance(stroke, TextStroke):
+                                stroke.paint()
+                            else:
+                                for i in stroke.tk_painting:
+                                    self.canvas.tag_raise(i)
                     
                     self.selected_menu.add_command(label="Shape Properties", command=lambda: 
                         ShapeOptions(self.root, 

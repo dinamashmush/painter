@@ -1,9 +1,8 @@
 import tkinter as tk
-from tkinter import colorchooser
+
 from typing import *
-from PIL import Image, ImageTk
-from validate_funcs import validate_width
-from color_btn import ColorBtn
+from components.color_btn import ColorBtn
+from helper_funcs.validate_funcs import validate_width
 
 class ShapeOptions(tk.Toplevel):
     def __init__(self, master, fill: str, color: str, width: int, on_save:Callable, multiple:bool):

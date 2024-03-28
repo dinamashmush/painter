@@ -3,7 +3,7 @@ def validate_width(P):
         return False
     if P == "0":
         return False
-    if str.isdigit(P) or P == "":
+    if str.isdigit(P):
         return True
     else:
         return False

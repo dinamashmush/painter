@@ -7,9 +7,9 @@ import tkinter as tk
 
 from stroke import *
 from enums import *
-from calc_points_funcs import *
-from shape_options import ShapeOptions
-from text_options import TextOptions
+from helper_funcs.calc_points_funcs import *
+from popups.shape_options import ShapeOptions
+from popups.text_options import TextOptions
 
 class Painter(tk.Frame):
     def __init__(self, master, root, color: tk.StringVar, fill: tk.StringVar, state: tk.StringVar, width: tk.IntVar, font: tk.StringVar, font_size: tk.IntVar) -> None:
@@ -222,6 +222,7 @@ class Painter(tk.Frame):
             self.curr_stroke = None
 
     def handle_left_click_canvas(self, event) -> Union[Literal[None], str]:
+        self.root.focus()
         self.remove_empty_text()
         if self.state.get() == State.TEXT.value:
             self.create_text_stroke(event)
@@ -449,23 +450,29 @@ class Painter(tk.Frame):
         self.selected_strokes = []
 
     def handle_typing(self, event) -> None:
+        print(self.text_index)
+        print(event.keycode)
         if not self.curr_stroke or not isinstance(self.curr_stroke, TextStroke) or not isinstance(self.text_index, int):
             return
         if event.keycode == 8:  # backspace
-            self.curr_stroke.remove_char(self.text_index)
-            self.create_outline_curr_text()
+            if self.text_index <= 0:
+                return
+            self.curr_stroke.remove_char(self.text_index - 1)
             self.text_index -= 1
+            self.create_outline_curr_text()
         elif event.keycode == 37:  # left arrow
             if self.text_index <= 0:
                 return
             self.text_index -= 1
-        elif event.keycode == 38:  # right arrow
+        elif event.keycode == 39:  # right arrow
+            print("in here, ")
             if self.text_index >= len(self.curr_stroke.text):
                 return
             self.text_index += 1
-        else:
+        elif event.char:
             self.curr_stroke.add_char(event.char, self.text_index)
             self.text_index += 1
+            print(self.curr_stroke.text, self.text_index)
             self.create_outline_curr_text()
             
     def save_to_json(self) -> None:

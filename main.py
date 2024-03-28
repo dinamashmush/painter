@@ -5,7 +5,7 @@ from typing import *
 from painter import Painter
 from enums import State
 
-from export_funcs import *
+from helper_funcs.export_funcs import *
 
 
 class Application(tk.Frame):

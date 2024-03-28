@@ -1,13 +1,14 @@
 import tkinter as tk
+
 from typing import *
 from PIL import Image, ImageTk
 
 from enums import State
-from text_options import TextOptions
-from validate_funcs import validate_width
-from color_btn import ColorBtn
-from tooltip import Tooltip
-from load_saved_file import LoadSavedFile
+from popups.text_options import TextOptions
+from helper_funcs.validate_funcs import validate_width
+from components.color_btn import ColorBtn
+from components.tooltip import Tooltip
+from popups.load_saved_file import LoadSavedFile
 
 class ToolBar(tk.Frame):
     def __init__(self, root, color: tk.StringVar, fill:tk.StringVar, state: tk.StringVar, width: tk.IntVar, export: Dict[str, Callable], font: tk.StringVar, font_size: tk.IntVar, delete_all: Callable, save_to_json:Callable, load_json:Callable):
@@ -27,11 +28,14 @@ class ToolBar(tk.Frame):
         self.create_widgets()
         
     def change_selected_state(self, state: str, btn: tk.Button) -> None:
-        for button in [self.select_button, self.oval_btn, self.rect_btn, self.text_btn, self.polygon_btn, self.triangle_btn]:
+        if self.state.get() == State.PAINT.value and state == State.PAINT.value:
+            return
+        for button in [self.select_button, self.oval_btn, self.rect_btn, self.text_btn, self.polygon_btn, self.triangle_btn, self.freestyle_button]:
             button.config(relief="raised")
         if self.state.get() == state: 
             self.state.set(State.PAINT.value)
             btn.config(relief="raised")
+            self.freestyle_button.config(relief="sunken")
         else:
             self.state.set(state)
             btn.config(relief="sunken")
@@ -52,10 +56,10 @@ class ToolBar(tk.Frame):
 
         
         self.export_btn = tk.Button(self, text="Export As", command=open_export_menu)
-        self.export_btn.pack(pady=10)
+        self.export_btn.pack(pady=5)
         
         self.save_frame = tk.Frame(self)
-        self.save_frame.pack(pady=10)
+        self.save_frame.pack(pady=5)
         
                 
         info_icon_image = Image.open("./assets/information.png")
@@ -71,11 +75,14 @@ class ToolBar(tk.Frame):
         self.load_json_btn = tk.Button(self, text="Load Saved File", command=lambda:LoadSavedFile(self, self.load_json) )
         self.load_json_btn.pack()
         
+        self.separator1 = tk.Frame(self, height=1,background="gray")
+        self.separator1.pack(fill="x", pady=10)
+        
         self.color_btn = ColorBtn(self, text = "Color", color=self.color.get(), on_change=lambda color: self.color.set(color))
-        self.color_btn.pack(pady=10)
+        self.color_btn.pack()
         
         self.fill_frame = tk.Frame(self)
-        self.fill_frame.pack(pady=10)
+        self.fill_frame.pack(pady=5)
         
         self.fill_btn = ColorBtn(self.fill_frame, text = "Fill", color=self.fill.get(), on_change=lambda color: self.fill.set(color))
         self.fill_btn.pack(side=tk.LEFT)
@@ -87,14 +94,8 @@ class ToolBar(tk.Frame):
         self.no_fill_btn: tk.Button = tk.Button(self.fill_frame, text="no fill", command=no_fill_command)
         self.no_fill_btn.pack(side=tk.LEFT)
         
-        select_icon_image = Image.open("./assets/3793488.png")
-        resize_select_icon = select_icon_image.resize((16, 16))
-        self.select_icon = ImageTk.PhotoImage(resize_select_icon)
-        self.select_button = tk.Button(self, text="Select", image=self.select_icon, compound="left", command=lambda: self.change_selected_state(State.SELECT.value, self.select_button))
-        self.select_button.pack(pady=10)
-        
         self.width_frame = tk.Frame(self)
-        self.width_frame.pack(pady=10)
+        self.width_frame.pack(pady=5)
         
         self.width_label = tk.Label(self.width_frame, text="Line Width: ")
         self.width_label.pack(side=tk.LEFT)
@@ -103,10 +104,27 @@ class ToolBar(tk.Frame):
         self.width_input = tk.Spinbox(self.width_frame, textvariable=self.width, from_=1, to=9, increment=1, validatecommand=(validatecommand,'%P'), validate="all", width=2) 
         self.width_input.pack(side=tk.LEFT)
         
+        self.separator2 = tk.Frame(self, height=1,background="gray")
+        self.separator2.pack(fill="x", pady=5)
+
+        
+        select_icon_image = Image.open("./assets/3793488.png")
+        resize_select_icon = select_icon_image.resize((16, 16))
+        self.select_icon = ImageTk.PhotoImage(resize_select_icon)
+        self.select_button = tk.Button(self, text="Select", image=self.select_icon, compound="left", command=lambda: self.change_selected_state(State.SELECT.value, self.select_button))
+        self.select_button.pack(pady=5)
+        
+        freestyle_icon_image = Image.open("./assets/pencil.png")
+        resize_freestyle_icon = freestyle_icon_image.resize((22, 22))
+        self.freestyle_icon = ImageTk.PhotoImage(resize_freestyle_icon)
+        self.freestyle_button = tk.Button(self, width=24, height=24, image=self.freestyle_icon, compound="left", command=lambda: self.change_selected_state(State.PAINT.value, self.freestyle_button))
+        self.freestyle_button.pack(pady=5)
+        self.freestyle_button.configure(relief="sunken")
+        
         self.create_shapes_btns()
         
         self.text_frame = tk.Frame(self)
-        self.text_frame.pack(pady=20)
+        self.text_frame.pack(pady=5)
                 
         text_icon_image = Image.open("./assets/icons-text.png")
         resize_text_icon = text_icon_image.resize((24, 24))
@@ -121,6 +139,9 @@ class ToolBar(tk.Frame):
         
         self.text_options_btn = tk.Button(self.text_frame,command=lambda: TextOptions(self.root, color=self.color.get(), font_size=self.font_size.get(), font=self.font.get(), on_save=on_save), text="Text\nOptions")
         self.text_options_btn.pack(side=tk.LEFT)
+
+        self.separator3 = tk.Frame(self, height=1,background="gray")
+        self.separator3.pack(fill="x", pady=5)
 
         
         self.delete_all_btn = tk.Button(self, text="Clear\nCanvas", command=self.delete_all)

@@ -1,8 +1,10 @@
 import tkinter as tk
+
 import json
 from typing import *
-from validate_funcs import validate_font_size
-from color_btn import ColorBtn
+
+from helper_funcs.validate_funcs import validate_font_size
+from components.color_btn import ColorBtn
 
 class TextOptions(tk.Toplevel):
     def __init__(self, master, font: str, font_size: int, color:str, on_save: Callable, multiple:bool = False):

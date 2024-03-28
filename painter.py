@@ -3,7 +3,7 @@ import tkinter as tk
 from enums import *
 from stroke import *
 from copy import copy
-
+import json
 
 class Painter(tk.Frame):
     def __init__(self, master, root, color: tk.StringVar, fill: tk.StringVar, state: tk.StringVar, width: tk.IntVar, font: tk.StringVar, font_size: tk.IntVar) -> None:
@@ -224,17 +224,18 @@ class Painter(tk.Frame):
             return 'break'
         elif self.state.get() == State.POLYGON.value:
             if not self.curr_stroke:
-                polygon = PolygonStroke(event.x, event.y, line_style=self.line_style, color=self.color.get(
-                ), width=self.width.get(), canvas=self.canvas)
+                polygon = UnfinishedPolygonStroke(event.x, event.y, line_style=self.line_style, color=self.color.get(
+                ), width=self.width.get(), canvas=self.canvas, fill=self.fill.get())
                 self.curr_stroke = polygon
-                self.strokes.append(polygon)
             else:
                 self.curr_stroke.continue_stroke(event.x, event.y)
                 for co in self.curr_stroke.coordinates[:-1]:
                     if abs(event.x - co[0]) < 5 and abs(event.y - co[1]) < 5:
-                        self.curr_stroke = None
-                        if self.active_polygon_line:
-                            self.canvas.delete(self.active_polygon_line)
+                        if isinstance(self.curr_stroke, UnfinishedPolygonStroke):
+                            self.strokes.append(self.curr_stroke.finish())
+                            self.curr_stroke = None
+                            if self.active_polygon_line:
+                                self.canvas.delete(self.active_polygon_line)
         return None
 
     def handle_move_canvas(self, event) -> None:
@@ -326,7 +327,6 @@ class Painter(tk.Frame):
 
             elif set(selected_rect).isdisjoint(stroke.coordinates):
                 continue
-            stroke.set_selected(True)
             self.selected_strokes.append(stroke)
 
         if not len(self.selected_strokes):
@@ -358,6 +358,9 @@ class Painter(tk.Frame):
             stroke.delete()
             self.strokes.remove(stroke)
         self.remove_select()
+        
+    def delete_all(self) -> None:
+        self.canvas.delete("all")
 
     def handle_typing(self, event) -> None:
         if not self.curr_stroke or not isinstance(self.curr_stroke, TextStroke) or not isinstance(self.text_index, int):
@@ -378,19 +381,67 @@ class Painter(tk.Frame):
             self.curr_stroke.add_char(event.char, self.text_index)
             self.text_index += 1
             self.create_outline_curr_text()
+            
+    def save_to_json(self) -> None:
+        strokes = [{
+            "type": stroke.__class__.__name__,
+            "coordinates": stroke.coordinates,
+            "line_style": stroke.line_style.name,
+            "color": stroke.color,
+            "fill": stroke.fill if hasattr(stroke, "fill") else "",
+            "width": stroke.width,
+            "font": stroke.font if hasattr(stroke, "font") else "",
+            "font_size": stroke.font_size if hasattr(stroke, "font_size") else "",
+            "shape": stroke.shape.name if hasattr(stroke, "shape") else "",
+            "text": stroke.text if hasattr(stroke, "text") else ""
+        } for stroke in self.strokes]
+        print(strokes)
+        with open("data.json", "w") as json_file:
+            json.dump(strokes, json_file, indent=4)
+
+    def restore_data_from_json(self) -> None:
+        json_fonts = open("data.json")
+        strokes = json.load(json_fonts)
+        self.delete_all()
+        for stroke in strokes:
+            if stroke["type"] == "FreeStyleStroke":
+                s: Stroke = FreeStyleStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas)
+            elif stroke["type"] == "PolygonStroke":
+                s = PolygonStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas,fill=stroke["fill"], coordinates=stroke["coordinates"])
+            elif stroke["type"] == "TextStroke":
+                s = TextStroke(stroke["coordinates"][0][0], stroke["coordinates"][0][1], line_style=LineStyle[stroke["line_style"]], color=stroke["color"], width=stroke["width"], canvas=self.canvas,font=stroke["font"], font_size=stroke["font_size"], text=stroke["text"])
+            elif stroke["type"] == "ShapeStroke":
+                s = ShapeStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas,fill=stroke["fill"], shape=Shape[stroke["shape"]])
+            elif stroke["type"] == "TriangleStroke":
+                s = TriangleStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas,fill=stroke["fill"], shape=Shape.TRIANGLE)
+            s.coordinates = stroke["coordinates"]
+            s.paint()
+            self.strokes.append(s)
+
 
 
 def calculate_points_on_line(x0, y0, x1, y1, num_points=20):
-    # Calculate the slope and y-intercept of the line
-    m = (y1 - y0) / (x1 - x0)
-    b = y0 - m * x0
+    # Check if x0 is equal to x1
+    if x0 == x1:
+        # Handle the case of a vertical line
+        m = None
+        b = None
+    else:
+        # Calculate the slope and y-intercept of the line
+        m = (y1 - y0) / (x1 - x0)
+        b = y0 - m * x0
 
     # Calculate the x coordinates of the points
     x_values = [x0 + i * (x1 - x0) / (num_points - 1)
                 for i in range(num_points)]
 
     # Calculate the corresponding y coordinates
-    y_values = [m * x + b for x in x_values]
+    if m is None:
+        # Handle the case of a vertical line
+        y_values = [y0 + i * (y1 - y0) / (num_points - 1)
+                    for i in range(num_points)]
+    else:
+        y_values = [m * x + b for x in x_values]
 
     # Combine the x and y coordinates into point tuples
     points = [(int(x), int(y)) for x, y in zip(x_values, y_values)]
@@ -417,7 +468,6 @@ def is_point_inside_triangle(point, A, B, C):
 
     return ((b1 == b2) and (b2 == b3))
 
-import math
 
 def is_point_inside_oval(point, rect_point1, rect_point2):
     """
@@ -443,4 +493,5 @@ def is_point_inside_oval(point, rect_point1, rect_point2):
 
     # Use ellipse equation to check if the point is inside the oval
     return (((normalized_point[0] ** 2) / (major_axis ** 2) + (normalized_point[1] ** 2) / (minor_axis ** 2))) <= 1
+    
     

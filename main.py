@@ -45,7 +45,9 @@ class Application(tk.Frame):
             "png": lambda: export_to_png(self.painter.canvas, root),
             "svg": lambda: export_to_svg(self.painter.canvas, root),
             "eps": lambda: export_to_eps(self.painter.canvas)
-            })
+            },
+            delete_all=self.painter.delete_all,
+            save_to_json=self.painter.save_to_json)
         
         self.frame1 = tk.Frame(
             self, 

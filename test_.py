@@ -120,7 +120,7 @@ def test_polygon_stroke():
     canvas.pack()
 
     # Instantiate a PolygonStroke object
-    polygon_stroke = PolygonStroke(50, 50, LineStyle.SOLID, "black", 1, canvas)
+    polygon_stroke = UnfinishedPolygonStroke(50, 50, LineStyle.SOLID, "black", 1, canvas)
 
     # Test continuing the stroke
     polygon_stroke.continue_stroke(100, 100)

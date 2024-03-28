@@ -6,7 +6,7 @@ from enums import State
 from text_options import TextOptions
 
 class ToolBar(tk.Frame):
-    def __init__(self, root, color: tk.StringVar, fill:tk.StringVar, state: tk.StringVar, width: tk.IntVar, export: Dict[str, Callable], font: tk.StringVar, font_size: tk.IntVar):
+    def __init__(self, root, color: tk.StringVar, fill:tk.StringVar, state: tk.StringVar, width: tk.IntVar, export: Dict[str, Callable], font: tk.StringVar, font_size: tk.IntVar, delete_all: Callable, save_to_json:Callable):
         super().__init__(root)
         self.root = root
         self.grid(row=1, column=2)
@@ -17,6 +17,8 @@ class ToolBar(tk.Frame):
         self.export = export
         self.font = font
         self.font_size = font_size
+        self.delete_all = delete_all
+        self.save_to_json = save_to_json
         self.create_widgets()
         
     def change_selected_state(self, state: str, btn: tk.Button) -> None:
@@ -47,6 +49,9 @@ class ToolBar(tk.Frame):
         
         self.export_btn = tk.Button(self, text="Export As", command=open_export_menu)
         self.export_btn.pack(pady=10)
+        
+        self.save_btn = tk.Button(self, text="Save", command=self.save_to_json)
+        self.save_btn.pack(pady=10)
 
         data = bytes.fromhex(" ".join([self.color.get()[1:]]*(16*16)))
         img = Image.frombuffer("RGB", (16, 16), data, "raw", "RGB", 0, 1)
@@ -90,6 +95,10 @@ class ToolBar(tk.Frame):
         
         self.text_options_btn = tk.Button(self.text_frame,command=lambda: TextOptions(self.root, font_size=self.font_size, font=self.font), text="Text\nOptions")
         self.text_options_btn.pack(side=tk.LEFT)
+
+        
+        self.delete_all_btn = tk.Button(self, text="Clear\nCanvas", command=self.delete_all)
+        self.delete_all_btn.pack()
 
 
     def validate_num(self, P):

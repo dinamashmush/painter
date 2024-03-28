@@ -19,3 +19,4 @@ class Shape(enum.Enum):
     RECT = "1"
     OVAL = "2"
     TRIANGLE = "3"
+    POLYGON = "4"

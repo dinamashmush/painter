@@ -4,6 +4,7 @@ from typing import *
 from PIL import Image, ImageTk, ImageGrab
 from enums import State
 from text_options import TextOptions
+from validate_funcs import validate_width
 
 class ToolBar(tk.Frame):
     def __init__(self, root, color: tk.StringVar, fill:tk.StringVar, state: tk.StringVar, width: tk.IntVar, export: Dict[str, Callable], font: tk.StringVar, font_size: tk.IntVar, delete_all: Callable, save_to_json:Callable):
@@ -78,7 +79,7 @@ class ToolBar(tk.Frame):
         self.select_button = tk.Button(self, text="Select", image=self.select_icon, compound="left", command=lambda: self.change_selected_state(State.SELECT.value, self.select_button))
         self.select_button.pack(pady=10)
         
-        validatecommand = (self.register(self.validate_num))
+        validatecommand = (self.register(validate_width))
         self.width_input = tk.Spinbox(self, textvariable=self.width, from_=1, to=9, increment=1, validatecommand=(validatecommand,'%P'), validate="all") 
         self.width_input.pack(pady=10)
         
@@ -93,21 +94,16 @@ class ToolBar(tk.Frame):
         self.text_btn = tk.Button(self.text_frame, image=self.text_icon, command=lambda: self.change_selected_state(State.TEXT.value, self.text_btn))
         self.text_btn.pack(side=tk.LEFT, padx=5)
         
-        self.text_options_btn = tk.Button(self.text_frame,command=lambda: TextOptions(self.root, font_size=self.font_size, font=self.font), text="Text\nOptions")
+        def on_save(font:str, font_size:int):
+            self.font.set(font)
+            self.font_size.set(font_size)
+        
+        self.text_options_btn = tk.Button(self.text_frame,command=lambda: TextOptions(self.root, font_size=self.font_size.get(), font=self.font.get(), on_save=on_save), text="Text\nOptions")
         self.text_options_btn.pack(side=tk.LEFT)
 
         
         self.delete_all_btn = tk.Button(self, text="Clear\nCanvas", command=self.delete_all)
         self.delete_all_btn.pack()
-
-
-    def validate_num(self, P):
-        if len(P)>1:
-            return False
-        if str.isdigit(P) or P == "":
-            return True
-        else:
-            return False
 
     def create_shapes_btns(self) -> None:
         
@@ -144,7 +140,7 @@ class ToolBar(tk.Frame):
 
     def pick_color(self) -> Union[Literal[None], Tuple[str, Image.Image]]:
         color = colorchooser.askcolor(title ="Choose color")[1]
-        if not color: return None #!error message
+        if not color: return None
         data = bytes.fromhex(" ".join([color[1:]]*(16*16)))
         return color, Image.frombuffer("RGB", (16, 16), data, "raw", "RGB", 0, 1)
         

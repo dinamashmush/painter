@@ -4,6 +4,8 @@ from enums import *
 from stroke import *
 from copy import copy
 import json
+from text_options import TextOptions
+from shape_options import ShapeOptions
 
 class Painter(tk.Frame):
     def __init__(self, master, root, color: tk.StringVar, fill: tk.StringVar, state: tk.StringVar, width: tk.IntVar, font: tk.StringVar, font_size: tk.IntVar) -> None:
@@ -41,7 +43,6 @@ class Painter(tk.Frame):
         self.selected_menu = tk.Menu(self, tearoff=0)
         self.selected_menu.add_command(
             label="Copy", command=self.copy_selected)
-        self.selected_menu.add_command(label="Change Properties")
         self.selected_menu.add_command(
             label="Move Forward", command=lambda: self.move_forward_backward_selected(True))
         self.selected_menu.add_command(
@@ -342,6 +343,49 @@ class Painter(tk.Frame):
         if len(self.selected_strokes) > 0 and self.selected_rect_locs:
             self.copied_coordinates = (event.x, event.y)
             if event.x > self.selected_rect_locs[0] and event.x < self.selected_rect_locs[2] and event.y > self.selected_rect_locs[1] and event.y < self.selected_rect_locs[3]:
+                is_text = [isinstance(stroke, TextStroke) for stroke in self.selected_strokes]
+                if any(is_text):
+                    if len(list(filter(lambda i: i, is_text))) == 1:
+                        text_stroke = self.selected_strokes[is_text.index(True)]
+                        if isinstance(text_stroke, TextStroke):
+                            font = text_stroke.font
+                            font_size = text_stroke.font_size
+                        else:
+                            font = ""
+                            font_size = 14
+
+                    else:
+                        font = ""
+                        font_size = 14
+                        
+                    def on_save_text(font:str, font_size:int):
+                        for text_stroke in filter(lambda stroke: isinstance(stroke, TextStroke), self.selected_strokes):
+                            if not isinstance(text_stroke, TextStroke): continue
+                            text_stroke.font = font
+                            text_stroke.font_size = font_size
+                            text_stroke.paint()
+                        
+                    self.selected_menu.add_command(label="Text Properties", command=lambda: TextOptions(self.root, font=font, font_size=font_size, on_save=on_save_text ))
+
+                if any([not i for i in is_text]):
+                    def on_save_shape(fill:str, color:str, width:int):
+                        print(width)
+                        for shape_stroke in filter(lambda stroke: not isinstance(stroke, TextStroke), self.selected_strokes):
+                            # if not isinstance(text_stroke, TextStroke): continue
+                            if hasattr(shape_stroke, "fill"):
+                                shape_stroke.fill = fill
+                            shape_stroke.color = color
+                            print(width)
+                        
+                            shape_stroke.width = width
+                            print("width: ", shape_stroke.width)
+                            shape_stroke.paint()
+                    self.selected_menu.add_command(label="Shape Properties", command=lambda: ShapeOptions(self.root, fill=self.fill.get(),color=self.color.get(), width=self.width.get(), on_save=on_save_shape ))
+
+                            
+
+
+                    
                 try:
                     self.selected_menu.tk_popup(event.x_root, event.y_root)
                 finally:

@@ -27,6 +27,7 @@ class Stroke():
     def continue_stroke(self, x: int, y: int) -> None:
         pass
     
+    
 
 class FreeStyleStroke(Stroke):
     def __init__(self, x: int, y: int, line_style: LineStyle, color: str, width: int, canvas: tk.Canvas):

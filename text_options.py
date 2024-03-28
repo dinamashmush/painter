@@ -1,14 +1,16 @@
 import tkinter as tk
 import json
+from typing import *
+from validate_funcs import validate_font_size
 
 class TextOptions(tk.Toplevel):
-    def __init__(self, master, font: tk.StringVar, font_size: tk.IntVar):
+    def __init__(self, master, font: str, font_size: int, on_save: Callable):
         super().__init__(master)
         self.geometry("500x250+150+150")
         
         self.font = font
         self.font_size = font_size
-        
+        self.on_save = on_save
         self.load_fonts_from_json()
         self.create_widgets()
         
@@ -17,11 +19,11 @@ class TextOptions(tk.Toplevel):
         fonts = json.load(json_fonts)["fonts"]
         self.fonts = fonts
         
-    def create_widgets(self):
+    def create_widgets(self) -> None:
         self.font_frame = tk.Frame(self)
         self.font_label1 = tk.Label(self.font_frame, text="font: ")
         self.font_entry = tk.Entry(self.font_frame)
-        self.font_entry.insert(0, self.font.get()) 
+        self.font_entry.insert(0, self.font) 
         
         self.font_frame.grid(column=0, row=0, sticky=tk.NW)
         self.font_label1.pack(side=tk.LEFT)
@@ -34,9 +36,12 @@ class TextOptions(tk.Toplevel):
         self.font_listbox_placeholder.grid(column=1, row=0)
         
         self.font_size_label = tk.Label(self, text="font size: ")
-        self.font_size_spinbox = tk.Spinbox(self, from_=3, to=25)
+        
+        validatecommand = (self.register(validate_font_size))
+
+        self.font_size_spinbox = tk.Spinbox(self, from_=3, to=25, validatecommand=(validatecommand,'%P'), validate="all")
         self.font_size_spinbox.delete(0, "end")  
-        self.font_size_spinbox.insert(0, self.font_size.get())
+        self.font_size_spinbox.insert(0, str(self.font_size))
         
         self.font_size_label.grid(column=3, row=0, sticky=tk.NW)
         self.font_size_spinbox.grid(column=4, row=0, sticky=tk.NW)
@@ -44,8 +49,8 @@ class TextOptions(tk.Toplevel):
         self.btns_frame = tk.Frame(self)
         self.btns_frame.grid(column=4, row=2, padx=(5, 0), pady=(50, 0))
         
-        self.save_btn = tk.Button(self.btns_frame, command=lambda:self.save_changes(), text="save")
-        self.cancel_btn = tk.Button(self.btns_frame, command=lambda:self.destroy(), text="cancel")
+        self.save_btn = tk.Button(self.btns_frame, command=self.save_changes, text="save")
+        self.cancel_btn = tk.Button(self.btns_frame, command=self.destroy, text="cancel")
         self.save_btn.pack(side=tk.LEFT)
         self.cancel_btn.pack(padx=5, side=tk.LEFT)
         
@@ -59,8 +64,7 @@ class TextOptions(tk.Toplevel):
         self.font_listbox.bind("<Double-Button-1>", self.on_select_font)
         
     def save_changes(self) -> None:
-        self.font.set(self.font_entry.get())
-        self.font_size.set(self.font_size_spinbox.get())
+        self.on_save(font=self.font_entry.get(), font_size=self.font_size_spinbox.get() if len(self.font_size_spinbox.get()) else self.font_size)
         self.destroy()
 
     def  on_typing_font(self, event) -> None:

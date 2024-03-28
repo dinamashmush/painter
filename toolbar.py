@@ -1,10 +1,10 @@
 import tkinter as tk
-from tkinter import colorchooser
 from typing import *
-from PIL import Image, ImageTk, ImageGrab
+from PIL import Image, ImageTk
 from enums import State
 from text_options import TextOptions
 from validate_funcs import validate_width
+from color_btn import ColorBtn
 
 class ToolBar(tk.Frame):
     def __init__(self, root, color: tk.StringVar, fill:tk.StringVar, state: tk.StringVar, width: tk.IntVar, export: Dict[str, Callable], font: tk.StringVar, font_size: tk.IntVar, delete_all: Callable, save_to_json:Callable):
@@ -43,7 +43,6 @@ class ToolBar(tk.Frame):
         def open_export_menu():
             try:
                 self.export_menu.tk_popup(self.export_btn.winfo_rootx(), self.export_btn.winfo_rooty())
-                # pass
             finally:
                 self.export_menu.grab_release()
 
@@ -57,18 +56,21 @@ class ToolBar(tk.Frame):
         data = bytes.fromhex(" ".join([self.color.get()[1:]]*(16*16)))
         img = Image.frombuffer("RGB", (16, 16), data, "raw", "RGB", 0, 1)
         self.color_img = ImageTk.PhotoImage(img)
-        self.color_btn: tk.Button = tk.Button(self, text = "Color", image=self.color_img, compound="left",
-                   command = self.update_color)
+        
+        self.color_btn = ColorBtn(self, text = "Color", color=self.color.get(), on_change=lambda color: self.color.set(color))
         self.color_btn.pack(pady=10)
         
         self.fill_frame = tk.Frame(self)
         self.fill_frame.pack(pady=10)
-                
-        self.fill_btn: tk.Button = tk.Button(self.fill_frame, text = "Fill", compound="left",
-                   command = self.update_fill)
+        
+        self.fill_btn = ColorBtn(self.fill_frame, text = "Fill", color=self.fill.get(), on_change=lambda color: self.fill.set(color))
         self.fill_btn.pack(side=tk.LEFT)
         
-        self.no_fill_btn: tk.Button = tk.Button(self.fill_frame, text="no fill", command=lambda: self.update_fill(True))
+        def no_fill_command() -> None:
+            self.fill.set("")
+            self.fill_btn.configure(image="")
+        
+        self.no_fill_btn: tk.Button = tk.Button(self.fill_frame, text="no fill", command=no_fill_command)
         self.no_fill_btn.pack(side=tk.LEFT)
     
         
@@ -137,36 +139,6 @@ class ToolBar(tk.Frame):
         self.triangle_btn = tk.Button(self.shapes_frame2, image=self.resize_triangle_icon, command=lambda: self.change_selected_state(State.TRIANGLE.value, self.triangle_btn))
         self.triangle_btn.pack(side=tk.LEFT, padx=3, pady=3)
          
-
-    def pick_color(self) -> Union[Literal[None], Tuple[str, Image.Image]]:
-        color = colorchooser.askcolor(title ="Choose color")[1]
-        if not color: return None
-        data = bytes.fromhex(" ".join([color[1:]]*(16*16)))
-        return color, Image.frombuffer("RGB", (16, 16), data, "raw", "RGB", 0, 1)
-        
-
-    def update_color(self) -> None:
-        picked_color = self.pick_color()
-        if not picked_color:
-            return
-        color, img = picked_color
-        self.color.set(color)
-        self.color_img = ImageTk.PhotoImage(img)
-        self.color_btn.config(image=self.color_img)
-
-    def update_fill(self, delete: bool=False) -> None:
-        if delete:
-            color = ""
-            self.fill_btn.config(image="")
-        else:
-            picked_color = self.pick_color()
-            if not picked_color:
-                return
-            color, img = picked_color
-            self.fill_img = ImageTk.PhotoImage(img)
-            self.fill_btn.config(image=self.fill_img)
-        self.fill.set(color)
-
     
     def say_hi(self):
         print("hi there, everyone!")

@@ -68,6 +68,8 @@ def is_partially_off_screen(window):
 
 def error_popup(root, text) -> None:
         error_frame = tk.Toplevel(root)
+        error_frame.grab_set()
+        
         error_frame.title("error")
         error_message = tk.Label(error_frame, text=text)
         error_message.pack()

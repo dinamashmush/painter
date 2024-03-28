@@ -4,13 +4,16 @@ from typing import *
 from validate_funcs import validate_font_size
 
 class TextOptions(tk.Toplevel):
-    def __init__(self, master, font: str, font_size: int, on_save: Callable):
+    def __init__(self, master, font: str, font_size: int, on_save: Callable, multiple:bool = False):
         super().__init__(master)
         self.geometry("500x250+150+150")
-        
+        self.grab_set()
+
         self.font = font
         self.font_size = font_size
         self.on_save = on_save
+        self.multiple = multiple
+
         self.load_fonts_from_json()
         self.create_widgets()
         
@@ -20,12 +23,17 @@ class TextOptions(tk.Toplevel):
         self.fonts = fonts
         
     def create_widgets(self) -> None:
+        
+        if self.multiple:
+            self.warning_label = tk.Label(self, text="Please note that these changes will affect all selected shapes and freestyle strokes.")
+            self.warning_label.grid(row=0, column=0, columnspan=4, pady=10)            
+        
         self.font_frame = tk.Frame(self)
         self.font_label1 = tk.Label(self.font_frame, text="font: ")
         self.font_entry = tk.Entry(self.font_frame)
         self.font_entry.insert(0, self.font) 
         
-        self.font_frame.grid(column=0, row=0, sticky=tk.NW)
+        self.font_frame.grid(column=0, row=1, sticky=tk.NW)
         self.font_label1.pack(side=tk.LEFT)
         self.font_entry.pack(side=tk.LEFT)
         
@@ -33,7 +41,7 @@ class TextOptions(tk.Toplevel):
         self.font_listbox.insert(tk.END, *self.fonts)
         
         self.font_listbox_placeholder = tk.Frame(self, width=125, height=163)
-        self.font_listbox_placeholder.grid(column=1, row=0)
+        self.font_listbox_placeholder.grid(column=1, row=1)
         
         self.font_size_label = tk.Label(self, text="font size: ")
         
@@ -43,8 +51,8 @@ class TextOptions(tk.Toplevel):
         self.font_size_spinbox.delete(0, "end")  
         self.font_size_spinbox.insert(0, str(self.font_size))
         
-        self.font_size_label.grid(column=3, row=0, sticky=tk.NW)
-        self.font_size_spinbox.grid(column=4, row=0, sticky=tk.NW)
+        self.font_size_label.grid(column=3, row=1, sticky=tk.NW)
+        self.font_size_spinbox.grid(column=4, row=1, sticky=tk.NW)
         
         self.btns_frame = tk.Frame(self)
         self.btns_frame.grid(column=4, row=2, padx=(5, 0), pady=(50, 0))
@@ -57,7 +65,7 @@ class TextOptions(tk.Toplevel):
         def get_font_listbox():
             self.font_listbox_placeholder.grid_forget()
             self.font_listbox.insert(tk.END, *self.fonts)
-            self.font_listbox.grid(column=1, row=0)
+            self.font_listbox.grid(column=1, row=1)
 
         self.font_entry.bind("<FocusIn>", lambda _: get_font_listbox())
         self.font_entry.bind("<KeyRelease>", self.on_typing_font)
@@ -87,7 +95,7 @@ class TextOptions(tk.Toplevel):
         self.font_entry.insert(tk.END, selected_item)
         self.font_listbox.delete(0, tk.END)
         self.font_listbox.grid_forget()
-        self.font_listbox_placeholder.grid(column=1, row=0)
+        self.font_listbox_placeholder.grid(column=1, row=1)
 
 
 

@@ -203,20 +203,3 @@ class TriangleStroke(ShapeStroke):
             
         mid = (self.coordinates[0][0] + self.coordinates[1][0])//2, self.coordinates[1][1]
         self.tk_painting = [self.canvas.create_polygon([*self.coordinates[0], *mid, self.coordinates[1][0], self.coordinates[0][1]], outline=self.color, fill=self.fill, width=self.width)]
-
-    
-
-def calculate_oval_coords(x1, y1, x2, y2, num_points=100):
-    center_x = (x1 + x2) / 2
-    center_y = (y1 + y2) / 2
-    semi_major_axis = (x2 - x1) / 2
-    semi_minor_axis = (y2 - y1) / 2
-
-    t = np.linspace(0, 2*np.pi, num_points)
-    x = center_x + semi_major_axis * np.cos(t)
-    y = center_y + semi_minor_axis * np.sin(t)
-    
-    x = np.round(x).astype(int)
-    y = np.round(y).astype(int)
-
-    return list(zip(x, y))

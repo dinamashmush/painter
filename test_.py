@@ -1,6 +1,7 @@
 import tkinter as tk
 from stroke import *
 from enums import *
+from calc_points_funcs import *
 
 def test_text_stroke():
     # Create a Tkinter window for testing
@@ -150,15 +151,3 @@ def test_polygon_stroke():
     canvas.delete("all")
     root.destroy()
     
-    
-def test_calculate_oval_coords():
-    x1, y1, x2, y2 = 50, 50, 150, 100
-    coords = calculate_oval_coords(x1, y1, x2, y2)
-    assert len(coords) == 100, "Number of calculated points is incorrect"
-    assert all([isinstance(coord, tuple) and len(coord) == 2 for coord in coords]), "Coordinates format is incorrect"
-
-    x1, y1, x2, y2 = 0, 0, 100, 100
-    coords = calculate_oval_coords(x1, y1, x2, y2)
-    assert len(coords) == 100, "Number of calculated points is incorrect"
-    assert all(isinstance(coord, tuple) and len(coord) == 2 for coord in coords), "Coordinates format is incorrect"
-

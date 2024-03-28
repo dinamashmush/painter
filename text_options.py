@@ -2,15 +2,17 @@ import tkinter as tk
 import json
 from typing import *
 from validate_funcs import validate_font_size
+from color_btn import ColorBtn
 
 class TextOptions(tk.Toplevel):
-    def __init__(self, master, font: str, font_size: int, on_save: Callable, multiple:bool = False):
+    def __init__(self, master, font: str, font_size: int, color:str, on_save: Callable, multiple:bool = False):
         super().__init__(master)
         self.geometry("500x250+150+150")
         self.grab_set()
 
         self.font = font
         self.font_size = font_size
+        self.color = color
         self.on_save = on_save
         self.multiple = multiple
 
@@ -41,7 +43,7 @@ class TextOptions(tk.Toplevel):
         self.font_listbox.insert(tk.END, *self.fonts)
         
         self.font_listbox_placeholder = tk.Frame(self, width=125, height=163)
-        self.font_listbox_placeholder.grid(column=1, row=1)
+        self.font_listbox_placeholder.grid(column=1, row=1, rowspan=3)
         
         self.font_size_label = tk.Label(self, text="font size: ")
         
@@ -54,8 +56,14 @@ class TextOptions(tk.Toplevel):
         self.font_size_label.grid(column=3, row=1, sticky=tk.NW)
         self.font_size_spinbox.grid(column=4, row=1, sticky=tk.NW)
         
+        def set_color(color:str) -> None:
+            self.color = color
+        self.color_btn = ColorBtn(self, text="Color", color=self.color, on_change=set_color)
+        self.color_btn.grid(column=3, row=2, pady=(15, 0))
+        
+        
         self.btns_frame = tk.Frame(self)
-        self.btns_frame.grid(column=4, row=2, padx=(5, 0), pady=(50, 0))
+        self.btns_frame.grid(column=4, row=3, padx=(5, 0), pady=(130, 0))
         
         self.save_btn = tk.Button(self.btns_frame, command=self.save_changes, text="save")
         self.cancel_btn = tk.Button(self.btns_frame, command=self.destroy, text="cancel")
@@ -65,14 +73,14 @@ class TextOptions(tk.Toplevel):
         def get_font_listbox():
             self.font_listbox_placeholder.grid_forget()
             self.font_listbox.insert(tk.END, *self.fonts)
-            self.font_listbox.grid(column=1, row=1)
+            self.font_listbox.grid(column=1, row=1, rowspan=3, padx=(0, 3))
 
         self.font_entry.bind("<FocusIn>", lambda _: get_font_listbox())
         self.font_entry.bind("<KeyRelease>", self.on_typing_font)
         self.font_listbox.bind("<Double-Button-1>", self.on_select_font)
         
     def save_changes(self) -> None:
-        self.on_save(font=self.font_entry.get(), font_size=self.font_size_spinbox.get() if len(self.font_size_spinbox.get()) else self.font_size)
+        self.on_save(font=self.font_entry.get(), font_size=self.font_size_spinbox.get() if len(self.font_size_spinbox.get()) else self.font_size, color=self.color)
         self.destroy()
 
     def  on_typing_font(self, event) -> None:
@@ -95,7 +103,7 @@ class TextOptions(tk.Toplevel):
         self.font_entry.insert(tk.END, selected_item)
         self.font_listbox.delete(0, tk.END)
         self.font_listbox.grid_forget()
-        self.font_listbox_placeholder.grid(column=1, row=1)
+        self.font_listbox_placeholder.grid(column=1, row=1, rowspan=3)
 
 
 

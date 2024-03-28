@@ -47,7 +47,8 @@ class Application(tk.Frame):
             "eps": lambda: export_to_eps(self.painter.canvas)
             },
             delete_all=self.painter.delete_all,
-            save_to_json=self.painter.save_to_json)
+            save_to_json=self.painter.save_to_json,
+            load_json=self.painter.restore_data_from_json)
         
         self.frame1 = tk.Frame(
             self, 

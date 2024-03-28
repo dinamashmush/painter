@@ -1,12 +1,15 @@
-from typing import *
-import tkinter as tk
-from enums import *
-from stroke import *
 from copy import copy
+from typing import *
 import json
-from text_options import TextOptions
-from shape_options import ShapeOptions
+from datetime import datetime
+
+import tkinter as tk
+
+from stroke import *
+from enums import *
 from calc_points_funcs import *
+from shape_options import ShapeOptions
+from text_options import TextOptions
 
 class Painter(tk.Frame):
     def __init__(self, master, root, color: tk.StringVar, fill: tk.StringVar, state: tk.StringVar, width: tk.IntVar, font: tk.StringVar, font_size: tk.IntVar) -> None:
@@ -48,7 +51,6 @@ class Painter(tk.Frame):
             label="Move Forward", command=lambda: self.move_forward_backward_selected(True))
         self.selected_menu.add_command(
             label="Move Backward", command=lambda: self.move_forward_backward_selected(False))
-        self.selected_menu.add_separator()
         self.selected_menu.add_command(
             label="Delete", command=self.delete_selected)
 
@@ -361,18 +363,23 @@ class Painter(tk.Frame):
                         if isinstance(text_stroke, TextStroke):
                             font = text_stroke.font
                             font_size = text_stroke.font_size
+                            color = text_stroke.color
                         else:
                             font = ""
                             font_size = 14
+                            color = ""
                     else:
                         font = ""
+                        color = ""
                         font_size = 14
                         
-                    def on_save_text(font:str, font_size:int):
+                    def on_save_text(font:str, font_size:int, color:str):
                         for text_stroke in filter(lambda stroke: isinstance(stroke, TextStroke), self.selected_strokes):
                             if not isinstance(text_stroke, TextStroke): continue
                             text_stroke.font = font
                             text_stroke.font_size = font_size
+                            if len(color):
+                                text_stroke.color = color
                         for stroke in self.strokes:
                             if stroke in self.selected_strokes and isinstance(stroke, TextStroke):
                                 stroke.paint()
@@ -385,6 +392,7 @@ class Painter(tk.Frame):
                         TextOptions(self.root, 
                                     font=font, 
                                     font_size=font_size, 
+                                    color=color,
                                     on_save=on_save_text, 
                                     multiple=(len(list(filter(lambda stroke: isinstance(stroke, TextStroke), self.selected_strokes))) != 1) 
                                     ))
@@ -473,24 +481,33 @@ class Painter(tk.Frame):
             "shape": stroke.shape.name if hasattr(stroke, "shape") else "",
             "text": stroke.text if hasattr(stroke, "text") else ""
         } for stroke in self.strokes]
-        with open("data.json", "w") as json_file:
+        
+        now = datetime.now()
+        curr_date = now.strftime("%d%m%y-%H%M%S")
+
+        with open("canvas-data-"+curr_date + ".json", "w") as json_file:
             json.dump(strokes, json_file, indent=4)
 
-    def restore_data_from_json(self) -> None:
-        json_fonts = open("data.json")
-        strokes = json.load(json_fonts)
-        self.delete_all()
-        for stroke in strokes:
-            if stroke["type"] == "FreeStyleStroke":
-                s: Stroke = FreeStyleStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas)
-            elif stroke["type"] == "PolygonStroke":
-                s = PolygonStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas,fill=stroke["fill"], coordinates=stroke["coordinates"])
-            elif stroke["type"] == "TextStroke":
-                s = TextStroke(stroke["coordinates"][0][0], stroke["coordinates"][0][1], line_style=LineStyle[stroke["line_style"]], color=stroke["color"], width=stroke["width"], canvas=self.canvas,font=stroke["font"], font_size=stroke["font_size"], text=stroke["text"])
-            elif stroke["type"] == "ShapeStroke":
-                s = ShapeStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas,fill=stroke["fill"], shape=Shape[stroke["shape"]])
-            elif stroke["type"] == "TriangleStroke":
-                s = TriangleStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas,fill=stroke["fill"], shape=Shape.TRIANGLE)
-            s.coordinates = stroke["coordinates"]
-            s.paint()
-            self.strokes.append(s)
+    def restore_data_from_json(self, filename) -> bool:
+        try:
+            json_data = open(filename)
+            strokes = json.load(json_data)
+            self.delete_all()
+            for stroke in strokes:
+                if stroke["type"] == "FreeStyleStroke":
+                    s: Stroke = FreeStyleStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas)
+                elif stroke["type"] == "PolygonStroke":
+                    s = PolygonStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas,fill=stroke["fill"], coordinates=stroke["coordinates"])
+                elif stroke["type"] == "TextStroke":
+                    s = TextStroke(stroke["coordinates"][0][0], stroke["coordinates"][0][1], line_style=LineStyle[stroke["line_style"]], color=stroke["color"], width=stroke["width"], canvas=self.canvas,font=stroke["font"], font_size=stroke["font_size"], text=stroke["text"])
+                elif stroke["type"] == "ShapeStroke":
+                    s = ShapeStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas,fill=stroke["fill"], shape=Shape[stroke["shape"]])
+                elif stroke["type"] == "TriangleStroke":
+                    s = TriangleStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas,fill=stroke["fill"], shape=Shape.TRIANGLE)
+                s.coordinates = stroke["coordinates"]
+                s.paint()
+                self.strokes.append(s)
+            return True
+        except:
+            print("here")
+            return False

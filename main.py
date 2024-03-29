@@ -48,7 +48,9 @@ class Application(tk.Frame):
             },
             delete_all=self.painter.delete_all,
             save_to_json=self.painter.save_to_json,
-            load_json=self.painter.restore_data_from_json)
+            load_json=self.painter.restore_data_from_json,
+            undo=self.painter.undo,
+            redo=self.painter.redo)
         
         self.frame1 = tk.Frame(
             self, 
@@ -65,10 +67,6 @@ class Application(tk.Frame):
 
 
 root = tk.Tk()
-
-
-# def drag(event):
-#     app.painter.handle_drag(event)
 
 
 def left_click(event):

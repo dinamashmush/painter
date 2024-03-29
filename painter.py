@@ -12,6 +12,7 @@ from helper_funcs.calc_points_funcs import *
 from popups.shape_options import ShapeOptions
 from popups.text_options import TextOptions
 
+
 class Painter(tk.Frame):
     def __init__(self, master, root, color: tk.StringVar, fill: tk.StringVar, state: tk.StringVar, width: tk.IntVar, font: tk.StringVar, font_size: tk.IntVar) -> None:
         super().__init__(master)
@@ -35,10 +36,10 @@ class Painter(tk.Frame):
         self.width = width
 
         self.curr_stroke: Union[Literal[None], Stroke] = None
-        
-        self.actions:List[Action] = []
-        self.undo_actions:List[Action] = []
-        
+
+        self.actions: List[Action] = []
+        self.undo_actions: List[Action] = []
+
         self.active_select_start: Union[Tuple[int, int], Literal[None]] = None
         self.active_select_end: Union[Tuple[int, int], Literal[None]] = None
         self.active_selection_rect: Union[int, Literal[None]] = None
@@ -64,18 +65,13 @@ class Painter(tk.Frame):
         self.menu.add_command(label="Paste", command=self.pasted_copied)
 
         self.copied_strokes: Union[Literal[None], List[Stroke]] = None
-        self.copied_coordinates: Union[Literal[None], Tuple[int, int]] = None
+        self.copied_bbox: Union[Literal[None], Tuple[int, int, int, int]] = None
         self.paste_coordinates: Union[Literal[None], Tuple[int, int]] = None
 
         self.text_index: Union[Literal[None], int] = None
         self.curr_text_rect: Union[Literal[None], int] = None
 
         self.active_polygon_line: Union[Literal[None], int] = None
-        
-        self.bb = tk.Button(self, text="BACK", command=self.undo)
-        self.rr = tk.Button(self, text="REDO", command=self.redo)
-        self.bb.pack()
-        self.rr.pack()
 
         self.canvas.bind('<Button-1>', self.handle_left_click_canvas)
         self.canvas.bind('<Motion>', self.handle_move_canvas)
@@ -87,8 +83,9 @@ class Painter(tk.Frame):
         new_action = self.actions[-1].undo()
         self.actions.pop()
         self.undo_actions.append(new_action)
-    
+
     def redo(self) -> None:
+
         if not len(self.undo_actions):
             return
         new_action = self.undo_actions[-1].redo()
@@ -96,41 +93,53 @@ class Painter(tk.Frame):
         self.actions.append(new_action)
 
     def move_forward_backward_selected(self, forward: bool) -> None:
-        not_selected_strokes = [stroke for stroke in self.strokes if stroke not in self.selected_strokes]
-        not_selected_strokes_indexes = [self.strokes.index(stroke) for stroke in self.strokes if stroke not in self.selected_strokes]
+        not_selected_strokes = [
+            stroke for stroke in self.strokes if stroke not in self.selected_strokes]
+        not_selected_strokes_indexes = [self.strokes.index(
+            stroke) for stroke in self.strokes if stroke not in self.selected_strokes]
         if forward:
             self.strokes = not_selected_strokes + self.selected_strokes
-            new_indexes = not_selected_strokes_indexes + [i for i, _ in enumerate(self.strokes) if i not in not_selected_strokes_indexes]
+            new_indexes = not_selected_strokes_indexes + \
+                [i for i, _ in enumerate(
+                    self.strokes) if i not in not_selected_strokes_indexes]
         else:
             self.strokes = self.selected_strokes + not_selected_strokes
-            new_indexes = [i for i, _ in enumerate(self.strokes) if i not in not_selected_strokes_indexes]+ not_selected_strokes_indexes
-        self.actions.append(ChangeOrderAction(painter_strokes=self.strokes, og_indexes=new_indexes, canvas=self.canvas))
+            new_indexes = [i for i, _ in enumerate(
+                self.strokes) if i not in not_selected_strokes_indexes] + not_selected_strokes_indexes
+        self.actions.append(ChangeOrderAction(
+            painter_strokes=self.strokes, og_indexes=new_indexes, canvas=self.canvas))
         for stroke in self.strokes:
             for i in stroke.tk_painting:
                 self.canvas.tag_raise(i)
 
     def copy_selected(self) -> None:
         self.copied_strokes = []
+        self.copied_bbox = self.canvas.bbox(*[p for stroke in self.selected_strokes for p in stroke.tk_painting])
         for stroke in self.selected_strokes:
             copied_stroke = copy(stroke)
             self.copied_strokes.append(copied_stroke)
 
     def pasted_copied(self) -> None:
-        if not self.copied_strokes or not self.copied_coordinates or not self.paste_coordinates:
+        if not self.copied_strokes or not self.copied_bbox or not self.paste_coordinates:
             return
+        copied_coordinates = (self.copied_bbox[0] + (((self.copied_bbox[2]) - self.copied_bbox[0])//2), self.copied_bbox[1] + ((self.copied_bbox[3]-self.copied_bbox[1])//2))
         dx, dy = self.paste_coordinates[0] - \
-            self.copied_coordinates[0], self.paste_coordinates[1] - \
-            self.copied_coordinates[1]
+            copied_coordinates[0], self.paste_coordinates[1] - \
+            copied_coordinates[1]
         for stroke in self.copied_strokes:
             new_stroke = copy(stroke)
             new_stroke.coordinates = [(co[0] + dx, co[1] + dy)
                                       for co in new_stroke.coordinates]
             new_stroke.paint()
             self.strokes.append(new_stroke)
+            
+        self.undo_actions = []
+        self.actions.append(CreateAction(
+            painter_strokes=self.strokes, strokes=self.strokes[-len(self.copied_strokes):]))
 
-    def handle_drag(self, event):
+    def handle_drag(self, event) -> None:
 
-        if self.drag_strokes:
+        if self.drag_strokes and self.selected_rect and self.selected_rect_locs:
             dx = event.x - self.prev_x
             dy = event.y - self.prev_y
 
@@ -157,16 +166,22 @@ class Painter(tk.Frame):
 
             return
 
-        if len(self.selected_strokes):
+        if len(self.selected_strokes) and self.selected_rect_locs:
             if event.x >= self.selected_rect_locs[0] and event.x <= self.selected_rect_locs[2] and event.y >= self.selected_rect_locs[1] and event.y <= self.selected_rect_locs[3]:
                 self.drag_strokes = True
                 self.prev_x = event.x
                 self.prev_y = event.y
+                og_coordinates: List[Dict[str, Any]] = [{"coordinates": copy(
+                    stroke.coordinates)} for stroke in self.selected_strokes]
+                self.undo_actions = []
+                self.actions.append(ChangePropAction(
+                    painter_strokes=self.strokes, og_props=og_coordinates, strokes=[i for i in self.selected_strokes]))
+
                 return
 
         if self.state.get() == State.PAINT.value:
             if not self.curr_stroke:
-                new_stroke = FreeStyleStroke(
+                new_stroke: Stroke = FreeStyleStroke(
                     event.x, event.y, self.line_style, self.color.get(), self.width.get(), self.canvas)
                 self.strokes.append(new_stroke)
                 self.curr_stroke = new_stroke
@@ -175,7 +190,7 @@ class Painter(tk.Frame):
         elif self.state.get() == State.RECT.value:
             if not self.curr_stroke:
                 new_stroke = ShapeStroke(event.x, event.y, self.line_style, self.color.get(
-                ), self.width.get(), self.canvas,self.fill.get() , Shape.RECT)
+                ), self.width.get(), self.canvas, self.fill.get(), Shape.RECT)
                 self.strokes.append(new_stroke)
                 self.curr_stroke = new_stroke
             else:
@@ -249,7 +264,9 @@ class Painter(tk.Frame):
                 self.curr_stroke.delete()
                 self.strokes.pop()
             else:
-                self.actions.append(CreateAction(painter_strokes=self.strokes, stroke=self.curr_stroke))
+                self.undo_actions = []
+                self.actions.append(CreateAction(
+                    painter_strokes=self.strokes, strokes=[self.curr_stroke]))
 
             self.curr_stroke = None
 
@@ -274,7 +291,9 @@ class Painter(tk.Frame):
                             self.curr_stroke = None
                             if self.active_polygon_line:
                                 self.canvas.delete(self.active_polygon_line)
-                            self.actions.append(CreateAction(painter_strokes=self.strokes,stroke=polygon_stroke))
+                            self.undo_actions = []
+                            self.actions.append(CreateAction(
+                                painter_strokes=self.strokes, strokes=[polygon_stroke]))
         return None
 
     def handle_move_canvas(self, event) -> None:
@@ -293,7 +312,6 @@ class Painter(tk.Frame):
         self.text_index = 0
         self.create_outline_curr_text()
 
-
     def create_outline_curr_text(self):
         if not isinstance(self.curr_stroke, TextStroke):
             return
@@ -311,7 +329,9 @@ class Painter(tk.Frame):
         if self.drag_strokes:
             self.drag_strokes = False
         if self.state.get() != State.SELECT.value and self.state.get() != State.POLYGON.value and self.curr_stroke:
-            self.actions.append(CreateAction(painter_strokes=self.strokes, stroke=self.curr_stroke))
+            self.undo_actions = []
+            self.actions.append(CreateAction(
+                painter_strokes=self.strokes, strokes=[self.curr_stroke]))
             self.curr_stroke = None
         else:
             if self.active_selection_rect:
@@ -332,7 +352,7 @@ class Painter(tk.Frame):
 
         for stroke in self.strokes:
             if stroke in self.selected_strokes:
-                continue
+                continue            
             if (isinstance(stroke, ShapeStroke) and stroke.shape.value == Shape.RECT.value) or (isinstance(stroke, TextStroke)):
                 x1, y1, x2, y2 = self.canvas.bbox(stroke.tk_painting[0])
                 if x1 > rect_range_x.stop or x2 < rect_range_x.start:
@@ -356,7 +376,7 @@ class Painter(tk.Frame):
                     if is_point_inside_triangle(co, stroke.coordinates[0], ((stroke.coordinates[0][0] + stroke.coordinates[1][0])//2, stroke.coordinates[1][1]), (stroke.coordinates[1][0], stroke.coordinates[0][1])):
                         is_in = True
                         break
-                if not is_in: 
+                if not is_in:
                     continue
             elif isinstance(stroke, ShapeStroke) and stroke.shape.value == Shape.OVAL.value:
                 is_in = False
@@ -366,11 +386,11 @@ class Painter(tk.Frame):
                         break
                 if not is_in:
                     continue
-
             elif set(selected_rect).isdisjoint(stroke.coordinates):
                 continue
-            
-            group =  next((group for group in self.groups if stroke in group), None)
+
+            group = next(
+                (group for group in self.groups if stroke in group), None)
 
             if group:
                 for s in group:
@@ -386,7 +406,7 @@ class Painter(tk.Frame):
         self.selected_rect = self.canvas.create_rectangle(
             *bbox, outline="green")
         self.selected_rect_locs = bbox
-        
+
     def try_to_delete(self, label):
         try:
             self.selected_menu.delete(label)
@@ -395,19 +415,20 @@ class Painter(tk.Frame):
 
     def handle_right_click(self, event: tk.Event) -> None:
         if len(self.selected_strokes) > 0 and self.selected_rect_locs:
-            self.copied_coordinates = (event.x, event.y)
             if event.x > self.selected_rect_locs[0] and event.x < self.selected_rect_locs[2] and event.y > self.selected_rect_locs[1] and event.y < self.selected_rect_locs[3]:
-                
+
                 self.try_to_delete("Text Properties")
                 self.try_to_delete("Shape Properties")
                 self.try_to_delete("Ungroup")
                 self.try_to_delete("Group")
 
-                is_text = [isinstance(stroke, TextStroke) for stroke in self.selected_strokes]
-                
+                is_text = [isinstance(stroke, TextStroke)
+                           for stroke in self.selected_strokes]
+
                 if any(is_text):
                     if len(list(filter(lambda i: i, is_text))) == 1:
-                        text_stroke = self.selected_strokes[is_text.index(True)]
+                        text_stroke = self.selected_strokes[is_text.index(
+                            True)]
                         if isinstance(text_stroke, TextStroke):
                             font = text_stroke.font
                             font_size = text_stroke.font_size
@@ -420,40 +441,41 @@ class Painter(tk.Frame):
                         font = ""
                         color = ""
                         font_size = 14
-                        
-                    self.selected_menu.add_command(label="Text Properties", command=lambda: 
-                        TextOptions(self.root, 
-                                    font=font, 
-                                    font_size=font_size, 
-                                    color=color,
-                                    on_save=self.on_save_text, 
-                                    multiple=(len(list(filter(lambda stroke: isinstance(stroke, TextStroke), self.selected_strokes))) != 1) 
-                                    ))
+
+                    self.selected_menu.add_command(label="Text Properties", command=lambda:
+                                                   TextOptions(self.root,
+                                                               font=font,
+                                                               font_size=font_size,
+                                                               color=color,
+                                                               on_save=self.on_save_text,
+                                                               multiple=(len(list(filter(lambda stroke: isinstance(
+                                                                   stroke, TextStroke), self.selected_strokes))) != 1)
+                                                               ))
 
                 if any([not i for i in is_text]):
-                    
-                    self.selected_menu.add_command(label="Shape Properties", command=lambda: 
-                        ShapeOptions(self.root, 
-                                     fill=self.fill.get(),
-                                     color=self.color.get(), 
-                                     width=self.width.get(), 
-                                     on_save=self.on_save_shape, 
-                                     multiple=(len(list(filter(lambda stroke: not isinstance(stroke, TextStroke), self.selected_strokes))) != 1) 
-                                     ))
+
+                    self.selected_menu.add_command(label="Shape Properties", command=lambda:
+                                                   ShapeOptions(self.root,
+                                                                fill=self.fill.get(),
+                                                                color=self.color.get(),
+                                                                width=self.width.get(),
+                                                                on_save=self.on_save_shape,
+                                                                multiple=(len(list(filter(lambda stroke: not isinstance(
+                                                                    stroke, TextStroke), self.selected_strokes))) != 1)
+                                                                ))
                 if len(self.selected_strokes) > 1:
                     if frozenset(self.selected_strokes) in self.groups:
-                        self.selected_menu.add_command(label="Ungroup", command=lambda:self.groups.remove(frozenset(self.selected_strokes))) 
+                        self.selected_menu.add_command(label="Ungroup", command=lambda: self.groups.remove(
+                            frozenset(self.selected_strokes)))
                     else:
                         for group in self.groups.copy():
                             for stroke in self.selected_strokes:
                                 if stroke in group:
                                     self.groups.remove(group)
                                     break
-                        self.selected_menu.add_command(label="Group", command=lambda:self.groups.add(frozenset(self.selected_strokes))) 
-                        
-                        
-                        
-                    
+                        self.selected_menu.add_command(label="Group", command=lambda: self.groups.add(
+                            frozenset(self.selected_strokes)))
+
                 try:
                     self.selected_menu.tk_popup(event.x_root, event.y_root)
                 finally:
@@ -464,21 +486,23 @@ class Painter(tk.Frame):
                 self.menu.tk_popup(event.x_root, event.y_root)
             finally:
                 self.menu.grab_release()
-                
-    
-                
-    def on_save_text(self, font:str, font_size:int, color:str) -> None:
-        changed_strokes:List[Stroke] = []
-        og_props:List[Dict[str, Any]] = []
+
+    def on_save_text(self, font: str, font_size: int, color: str) -> None:
+        changed_strokes: List[Stroke] = []
+        og_props: List[Dict[str, Any]] = []
         for text_stroke in filter(lambda stroke: isinstance(stroke, TextStroke), self.selected_strokes):
-            if not isinstance(text_stroke, TextStroke): continue
+            if not isinstance(text_stroke, TextStroke):
+                continue
             changed_strokes.append(text_stroke)
-            og_props.append({"font":text_stroke.font, "font_size":text_stroke.font_size,"color":text_stroke.color })
+            og_props.append(
+                {"font": text_stroke.font, "font_size": text_stroke.font_size, "color": text_stroke.color})
             text_stroke.font = font
             text_stroke.font_size = font_size
             if len(color):
                 text_stroke.color = color
-        self.actions.append(ChangePropAction(painter_strokes=self.strokes, strokes=changed_strokes, og_props=og_props))
+        self.undo_actions = []
+        self.actions.append(ChangePropAction(
+            painter_strokes=self.strokes, strokes=changed_strokes, og_props=og_props))
         for stroke in self.strokes:
             if stroke in self.selected_strokes and isinstance(stroke, TextStroke):
                 stroke.paint()
@@ -486,21 +510,23 @@ class Painter(tk.Frame):
                 for i in stroke.tk_painting:
                     self.canvas.tag_raise(i)
 
-                
-    def on_save_shape(self, fill:str, color:str, width:int) -> None:
-        changed_strokes:List[Stroke] = []
-        og_props:List[Dict[str, Any]] = []
+    def on_save_shape(self, fill: str, color: str, width: int) -> None:
+        changed_strokes: List[Stroke] = []
+        og_props: List[Dict[str, Any]] = []
         for shape_stroke in filter(lambda stroke: not isinstance(stroke, TextStroke), self.selected_strokes):
             changed_strokes.append(shape_stroke)
-            og_props.append({"color":shape_stroke.color, "width":shape_stroke.width })
+            og_props.append({"color": shape_stroke.color,
+                            "width": shape_stroke.width})
 
             if hasattr(shape_stroke, "fill"):
                 og_props[-1]["fill"] = shape_stroke.fill
                 shape_stroke.fill = fill
             shape_stroke.color = color
-        
+
             shape_stroke.width = width
-        self.actions.append(ChangePropAction(painter_strokes=self.strokes, strokes=changed_strokes, og_props=og_props))
+        self.undo_actions = []
+        self.actions.append(ChangePropAction(
+            painter_strokes=self.strokes, strokes=changed_strokes, og_props=og_props))
         for stroke in self.strokes:
             if stroke in self.selected_strokes and not isinstance(stroke, TextStroke):
                 stroke.paint()
@@ -508,14 +534,14 @@ class Painter(tk.Frame):
                 for i in stroke.tk_painting:
                     self.canvas.tag_raise(i)
 
-
     def delete_selected(self) -> None:
         for stroke in self.selected_strokes:
             stroke.delete()
             self.strokes.remove(stroke)
         self.remove_select()
-        
+
     def delete_all(self) -> None:
+        self.actions.append(ClearCanvasAction(self.strokes, [i for i in self.strokes], self.canvas))
         self.canvas.delete("all")
         self.strokes = []
         self.selected_strokes = []
@@ -541,7 +567,7 @@ class Painter(tk.Frame):
             self.curr_stroke.add_char(event.char, self.text_index)
             self.text_index += 1
             self.create_outline_curr_text()
-            
+
     def save_to_json(self) -> None:
         strokes = [{
             "type": stroke.__class__.__name__,
@@ -555,7 +581,7 @@ class Painter(tk.Frame):
             "shape": stroke.shape.name if hasattr(stroke, "shape") else "",
             "text": stroke.text if hasattr(stroke, "text") else ""
         } for stroke in self.strokes]
-        
+
         now = datetime.now()
         curr_date = now.strftime("%d%m%y-%H%M%S")
 
@@ -566,22 +592,32 @@ class Painter(tk.Frame):
         try:
             json_data = open(filename)
             strokes = json.load(json_data)
-            self.delete_all()
+            old_strokes = [i for i in self.strokes]
+            self.canvas.delete("all")
+            self.strokes = []
+            self.selected_strokes = []
+
             for stroke in strokes:
                 if stroke["type"] == "FreeStyleStroke":
-                    s: Stroke = FreeStyleStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas)
+                    s: Stroke = FreeStyleStroke(
+                        0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas)
                 elif stroke["type"] == "PolygonStroke":
-                    s = PolygonStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas,fill=stroke["fill"], coordinates=stroke["coordinates"])
+                    s = PolygonStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"],
+                                      self.canvas, fill=stroke["fill"], coordinates=[tuple(co) for co in stroke["coordinates"]]) # type: ignore
                 elif stroke["type"] == "TextStroke":
-                    s = TextStroke(stroke["coordinates"][0][0], stroke["coordinates"][0][1], line_style=LineStyle[stroke["line_style"]], color=stroke["color"], width=stroke["width"], canvas=self.canvas,font=stroke["font"], font_size=stroke["font_size"], text=stroke["text"])
+                    s = TextStroke(stroke["coordinates"][0][0], stroke["coordinates"][0][1], line_style=LineStyle[stroke["line_style"]], color=stroke["color"],
+                                   width=stroke["width"], canvas=self.canvas, font=stroke["font"], font_size=stroke["font_size"], text=stroke["text"])
                 elif stroke["type"] == "ShapeStroke":
-                    s = ShapeStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas,fill=stroke["fill"], shape=Shape[stroke["shape"]])
+                    s = ShapeStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"],
+                                    stroke["width"], self.canvas, fill=stroke["fill"], shape=Shape[stroke["shape"]])
                 elif stroke["type"] == "TriangleStroke":
-                    s = TriangleStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"], stroke["width"], self.canvas,fill=stroke["fill"], shape=Shape.TRIANGLE)
-                s.coordinates = stroke["coordinates"]
+                    s = TriangleStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"],
+                                       stroke["width"], self.canvas, fill=stroke["fill"], shape=Shape.TRIANGLE)
+                s.coordinates = [tuple(co) for co in stroke["coordinates"]] # type: ignore
                 s.paint()
                 self.strokes.append(s)
+            self.undo_actions = []
+            self.actions.append(LoadJsonAction(self.strokes, old_strokes))
             return True
         except:
-            print("here")
             return False

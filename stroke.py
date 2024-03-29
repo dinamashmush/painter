@@ -37,9 +37,9 @@ class FreeStyleStroke(Stroke):
 
 
     def paint(self):
-        for line in self.tk_painting:
-            self.canvas.delete(line)
-
+        
+        self.delete()
+        
         for i, co in enumerate(self.coordinates):
             if i == len(self.coordinates) - 1: return
             line = self.canvas.create_line(*co, *self.coordinates[i+1], fill=self.color, width=self.width)
@@ -173,8 +173,7 @@ class UnfinishedPolygonStroke(Stroke):
         self.coordinates.append((x, y))
     
     def paint(self) -> None:
-        for painting in self.tk_painting:
-            self.canvas.delete(painting)
+        self.delete()
         self.tk_painting = []
             
         for i, co in enumerate(self.coordinates):

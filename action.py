@@ -1,10 +1,11 @@
 from typing import *
 from typing import *
+from typing import List
 from enums import *
 from stroke import *
 import tkinter as tk
-
-from stroke import  Stroke
+from copy import copy
+from stroke import  List, Stroke
 
 
 class Action():
@@ -17,19 +18,21 @@ class Action():
         pass
     
 class CreateAction(Action):
-    def __init__(self, painter_strokes: List[Stroke], stroke: Stroke):
+    def __init__(self, painter_strokes: List[Stroke], strokes: List[Stroke]):
         super().__init__(painter_strokes)
-        self.stroke = stroke
+        self.strokes = strokes
         
     def undo(self) -> Action:
-        self.painter_strokes.remove(self.stroke)
-        self.stroke.delete()
-        return CreateAction(stroke=self.stroke, painter_strokes=self.painter_strokes)
+        for stroke in self.strokes:
+            self.painter_strokes.remove(stroke)
+            stroke.delete()
+        return CreateAction(strokes=self.strokes, painter_strokes=self.painter_strokes)
     
     def redo(self) -> Action:
-        self.painter_strokes.append(self.stroke)
-        self.stroke.paint()
-        return CreateAction(stroke=self.stroke, painter_strokes=self.painter_strokes)
+        for stroke in self.strokes:
+            self.painter_strokes.append(stroke)
+            stroke.paint()
+        return CreateAction(strokes=self.strokes, painter_strokes=self.painter_strokes)
 
 
 class ChangePropAction(Action):
@@ -59,7 +62,7 @@ class ChangeOrderAction(Action):
         self.canvas = canvas
         
     def undo(self) -> Action:
-        new_indexes = [self.og_indexes[self.og_indexes.index(i)] for i, _ in enumerate(self.og_indexes)]
+        new_indexes = [self.og_indexes.index(i) for i, _ in enumerate(self.og_indexes)]
         self.copied_strokes = [i for i in self.painter_strokes]
         self.painter_strokes.sort(key=lambda stroke: self.og_indexes[self.copied_strokes.index(stroke)])
         for stroke in self.painter_strokes:
@@ -71,3 +74,37 @@ class ChangeOrderAction(Action):
     def redo(self) -> Action:
         return self.undo()
     
+
+class ClearCanvasAction(Action):
+    def __init__(self, painter_strokes: List[Stroke], strokes: List[Stroke], canvas:tk.Canvas) -> None:
+        super().__init__(painter_strokes)
+        self.canvas = canvas
+        self.strokes = strokes
+    def undo(self) -> Action:
+        for stroke in self.strokes:
+            self.painter_strokes.append(stroke)
+            stroke.paint()
+        return ClearCanvasAction(self.painter_strokes, self.strokes, self.canvas)
+    def redo(self) -> Action:
+        action =  ClearCanvasAction(self.painter_strokes, [i for i in self.painter_strokes], self.canvas)
+        self.canvas.delete("all")
+        self.painter_strokes = []
+        return action
+
+class LoadJsonAction(Action):
+    def __init__(self, painter_strokes: List[Stroke], strokes: List[Stroke]) -> None:
+        super().__init__(painter_strokes)
+        self.strokes = strokes
+    
+    def undo(self) -> Action:
+        old_strokes = copy(self.painter_strokes)
+        for stroke in [i for i in self.painter_strokes]:
+            stroke.delete()
+            self.painter_strokes.remove(stroke)
+        for stroke in self.strokes:
+            self.painter_strokes.append(stroke)
+            stroke.paint()
+        return LoadJsonAction(self.painter_strokes, strokes=old_strokes)
+    
+    def redo(self):
+        return self.undo()

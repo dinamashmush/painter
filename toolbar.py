@@ -8,13 +8,15 @@ from popups.text_options import TextOptions
 from helper_funcs.validate_funcs import validate_width
 from components.color_btn import ColorBtn
 from components.tooltip import Tooltip
+from components.icon_button import IconButton
 from popups.load_saved_file import LoadSavedFile
 
 class ToolBar(tk.Frame):
-    def __init__(self, root, color: tk.StringVar, fill:tk.StringVar, state: tk.StringVar, width: tk.IntVar, export: Dict[str, Callable], font: tk.StringVar, font_size: tk.IntVar, delete_all: Callable, save_to_json:Callable, load_json:Callable):
+    def __init__(self, root, color: tk.StringVar, fill:tk.StringVar, state: tk.StringVar, width: tk.IntVar, export: Dict[str, Callable], font: tk.StringVar, font_size: tk.IntVar, delete_all: Callable, save_to_json:Callable, load_json:Callable, undo:Callable, redo:Callable):
         super().__init__(root)
         self.root = root
         self.grid(row=1, column=2, padx=(10, 0))
+        
         self.color = color
         self.fill = fill
         self.state = state
@@ -25,6 +27,8 @@ class ToolBar(tk.Frame):
         self.delete_all = delete_all
         self.save_to_json = save_to_json
         self.load_json = load_json
+        self.undo = undo
+        self.redo = redo
         self.create_widgets()
         
     def change_selected_state(self, state: str, btn: tk.Button) -> None:
@@ -56,7 +60,7 @@ class ToolBar(tk.Frame):
 
         
         self.export_btn = tk.Button(self, text="Export As", command=open_export_menu)
-        self.export_btn.pack(pady=5)
+        self.export_btn.pack()
         
         self.save_frame = tk.Frame(self)
         self.save_frame.pack(pady=5)
@@ -74,6 +78,18 @@ class ToolBar(tk.Frame):
         
         self.load_json_btn = tk.Button(self, text="Load Saved File", command=lambda:LoadSavedFile(self, self.load_json) )
         self.load_json_btn.pack()
+        
+        self.separator0 = tk.Frame(self, height=1,background="gray")
+        self.separator0.pack(fill="x", pady=10)
+        
+        self.undo_frame = tk.Frame(self)
+        self.undo_frame.pack()
+        
+        self.undo_button = IconButton(self.undo_frame, img_path="./assets/undo.png", img_size=16, command=self.undo)
+        self.undo_button.pack(side=tk.LEFT, padx=3)
+        
+        self.undo_button = IconButton(self.undo_frame, img_path="./assets/redo.png", img_size=16, command=self.redo)
+        self.undo_button.pack(side=tk.LEFT, padx=3)
         
         self.separator1 = tk.Frame(self, height=1,background="gray")
         self.separator1.pack(fill="x", pady=10)
@@ -107,17 +123,10 @@ class ToolBar(tk.Frame):
         self.separator2 = tk.Frame(self, height=1,background="gray")
         self.separator2.pack(fill="x", pady=5)
 
-        
-        select_icon_image = Image.open("./assets/3793488.png")
-        resize_select_icon = select_icon_image.resize((16, 16))
-        self.select_icon = ImageTk.PhotoImage(resize_select_icon)
-        self.select_button = tk.Button(self, text="Select", image=self.select_icon, compound="left", command=lambda: self.change_selected_state(State.SELECT.value, self.select_button))
+        self.select_button = IconButton(self, text="Select", img_path="./assets/3793488.png", img_size=16, command=lambda: self.change_selected_state(State.SELECT.value, self.select_button))
         self.select_button.pack(pady=5)
         
-        freestyle_icon_image = Image.open("./assets/pencil.png")
-        resize_freestyle_icon = freestyle_icon_image.resize((22, 22))
-        self.freestyle_icon = ImageTk.PhotoImage(resize_freestyle_icon)
-        self.freestyle_button = tk.Button(self, width=24, height=24, image=self.freestyle_icon, compound="left", command=lambda: self.change_selected_state(State.PAINT.value, self.freestyle_button))
+        self.freestyle_button = IconButton(self, img_path="./assets/pencil.png", img_size=22, command=lambda: self.change_selected_state(State.PAINT.value, self.freestyle_button) ,btn_size=24 )
         self.freestyle_button.pack(pady=5)
         self.freestyle_button.configure(relief="sunken")
         
@@ -126,10 +135,7 @@ class ToolBar(tk.Frame):
         self.text_frame = tk.Frame(self)
         self.text_frame.pack(pady=5)
                 
-        text_icon_image = Image.open("./assets/icons-text.png")
-        resize_text_icon = text_icon_image.resize((24, 24))
-        self.text_icon = ImageTk.PhotoImage(resize_text_icon)
-        self.text_btn = tk.Button(self.text_frame, image=self.text_icon, command=lambda: self.change_selected_state(State.TEXT.value, self.text_btn))
+        self.text_btn = IconButton(self.text_frame, img_path="./assets/icons-text.png",img_size=24, command=lambda: self.change_selected_state(State.TEXT.value, self.text_btn))
         self.text_btn.pack(side=tk.LEFT, padx=5)
         
         def on_save(font:str, font_size:int, color:str):
@@ -155,27 +161,15 @@ class ToolBar(tk.Frame):
         self.shapes_frame2.pack()
 
         
-        oval_icon_image = Image.open("./assets/icons-circle.png")
-        resize_oval_icon = oval_icon_image.resize((24, 24))
-        self.resize_oval_icon = ImageTk.PhotoImage(resize_oval_icon)
-        self.oval_btn = tk.Button(self.shapes_frame1, image=self.resize_oval_icon, command=lambda: self.change_selected_state(State.OVAL.value, self.oval_btn))
+        self.oval_btn = IconButton(self.shapes_frame1, img_path="./assets/icons-circle.png", img_size=24, command=lambda: self.change_selected_state(State.OVAL.value, self.oval_btn))
         self.oval_btn.pack(side=tk.LEFT, padx=3, pady=3)
         
-        rect_icon_image = Image.open("./assets/icons-square.png")
-        resize_rect_icon = rect_icon_image.resize((24, 24))
-        self.resize_rect_icon = ImageTk.PhotoImage(resize_rect_icon)
-        self.rect_btn = tk.Button(self.shapes_frame1, image=self.resize_rect_icon, command=lambda: self.change_selected_state(State.RECT.value, self.rect_btn))
+        self.rect_btn = IconButton(self.shapes_frame1, img_path="./assets/icons-square.png",img_size=24, command=lambda: self.change_selected_state(State.RECT.value, self.rect_btn))
         self.rect_btn.pack(side=tk.LEFT, padx=3, pady=3)
 
-        polygon_icon_image = Image.open("./assets/polygon.png")
-        resize_polygon_icon = polygon_icon_image.resize((24, 24))
-        self.resize_polygon_icon = ImageTk.PhotoImage(resize_polygon_icon)
-        self.polygon_btn = tk.Button(self.shapes_frame2, image=self.resize_polygon_icon, command=lambda: self.change_selected_state(State.POLYGON.value, self.polygon_btn))
+        self.polygon_btn = IconButton(self.shapes_frame2, img_path="./assets/polygon.png", img_size=24, command=lambda: self.change_selected_state(State.POLYGON.value, self.polygon_btn))
         self.polygon_btn.pack(side=tk.LEFT, padx=3, pady=3)
         
-        triangle_icon_image = Image.open("./assets/triangle.png")
-        resize_triangle_icon = triangle_icon_image.resize((24, 24))
-        self.resize_triangle_icon = ImageTk.PhotoImage(resize_triangle_icon)
-        self.triangle_btn = tk.Button(self.shapes_frame2, image=self.resize_triangle_icon, command=lambda: self.change_selected_state(State.TRIANGLE.value, self.triangle_btn))
+        self.triangle_btn = IconButton(self.shapes_frame2, img_path="./assets/triangle.png", img_size=24, command=lambda: self.change_selected_state(State.TRIANGLE.value, self.triangle_btn))
         self.triangle_btn.pack(side=tk.LEFT, padx=3, pady=3)
          

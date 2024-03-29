@@ -4,8 +4,10 @@ from math import *
 from typing import *
 from painter import Painter
 from enums import State
+import sys
 
 from helper_funcs.export_funcs import *
+
 
 
 class Application(tk.Frame):
@@ -66,33 +68,40 @@ class Application(tk.Frame):
         self.frame2.grid(column=0, row=0)
 
 
-root = tk.Tk()
+
+if sys.argv[1] == "--help":
+    print("To run this program, simply run main.py using python3:")
+    print("python3 main.py")
+    print("no arguments needed. For more information about the program, see README.")
+else:
+
+    root = tk.Tk()
 
 
-def left_click(event):
-    app.painter.handle_left_click(event)
+    def left_click(event):
+        app.painter.handle_left_click(event)
 
 
-def button_release(event):
-    app.painter.handle_btn_release()
+    def button_release(event):
+        app.painter.handle_btn_release()
 
 
-def right_click(event):
-    app.painter.handle_right_click(event)
+    def right_click(event):
+        app.painter.handle_right_click(event)
 
 
-def handle_key_press(event):
-    app.painter.handle_typing(event)
+    def handle_key_press(event):
+        app.painter.handle_typing(event)
 
 
-root.geometry('830x580')
-root.resizable(False, False)
+    root.geometry('830x580')
+    root.resizable(False, False)
 
 
-root.bind('<Button-1>', left_click)
-root.bind('<ButtonRelease-1>', button_release)
-root.bind('<Button-3>', right_click)
-root.bind('<Key>', handle_key_press)
+    root.bind('<Button-1>', left_click)
+    root.bind('<ButtonRelease-1>', button_release)
+    root.bind('<Button-3>', right_click)
+    root.bind('<Key>', handle_key_press)
 
-app = Application(master=root)
-app.mainloop()
+    app = Application(master=root)
+    app.mainloop()

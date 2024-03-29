@@ -26,6 +26,7 @@ class Painter(tk.Frame):
         self.font_size = font_size
 
         self.strokes: List[Stroke] = []
+        self.groups: Set[FrozenSet[Stroke]] = set()
         self.canvas = tk.Canvas(self, width=640, height=480, bg="#000000")
         self.canvas.pack()
 
@@ -33,6 +34,7 @@ class Painter(tk.Frame):
         self.width = width
 
         self.curr_stroke: Union[Literal[None], Stroke] = None
+        
         self.active_select_start: Union[Tuple[int, int], Literal[None]] = None
         self.active_select_end: Union[Tuple[int, int], Literal[None]] = None
         self.active_selection_rect: Union[int, Literal[None]] = None
@@ -296,6 +298,8 @@ class Painter(tk.Frame):
         selected_rect = [(i, j) for i in rect_range_x for j in rect_range_y]
 
         for stroke in self.strokes:
+            if stroke in self.selected_strokes:
+                continue
             if (isinstance(stroke, ShapeStroke) and stroke.shape.value == Shape.RECT.value) or (isinstance(stroke, TextStroke)):
                 x1, y1, x2, y2 = self.canvas.bbox(stroke.tk_painting[0])
                 if x1 > rect_range_x.stop or x2 < rect_range_x.start:
@@ -332,7 +336,14 @@ class Painter(tk.Frame):
 
             elif set(selected_rect).isdisjoint(stroke.coordinates):
                 continue
-            self.selected_strokes.append(stroke)
+            
+            group =  next((group for group in self.groups if stroke in group), None)
+
+            if group:
+                for s in group:
+                    self.selected_strokes.append(s)
+            else:
+                self.selected_strokes.append(stroke)
 
         if not len(self.selected_strokes):
             return
@@ -342,19 +353,22 @@ class Painter(tk.Frame):
         self.selected_rect = self.canvas.create_rectangle(
             *bbox, outline="green")
         self.selected_rect_locs = bbox
+        
+    def try_to_delete(self, label):
+        try:
+            self.selected_menu.delete(label)
+        except:
+            pass
 
     def handle_right_click(self, event: tk.Event) -> None:
         if len(self.selected_strokes) > 0 and self.selected_rect_locs:
             self.copied_coordinates = (event.x, event.y)
             if event.x > self.selected_rect_locs[0] and event.x < self.selected_rect_locs[2] and event.y > self.selected_rect_locs[1] and event.y < self.selected_rect_locs[3]:
-                try:
-                    self.selected_menu.delete("Text Properties")
-                except:
-                    pass
-                try:
-                    self.selected_menu.delete("Shape Properties")
-                except:
-                    pass
+                
+                self.try_to_delete("Text Properties")
+                self.try_to_delete("Shape Properties")
+                self.try_to_delete("Ungroup")
+                self.try_to_delete("Group")
 
                 is_text = [isinstance(stroke, TextStroke) for stroke in self.selected_strokes]
                 
@@ -374,19 +388,6 @@ class Painter(tk.Frame):
                         color = ""
                         font_size = 14
                         
-                    def on_save_text(font:str, font_size:int, color:str):
-                        for text_stroke in filter(lambda stroke: isinstance(stroke, TextStroke), self.selected_strokes):
-                            if not isinstance(text_stroke, TextStroke): continue
-                            text_stroke.font = font
-                            text_stroke.font_size = font_size
-                            if len(color):
-                                text_stroke.color = color
-                        for stroke in self.strokes:
-                            if stroke in self.selected_strokes and isinstance(stroke, TextStroke):
-                                stroke.paint()
-                            else:
-                                for i in stroke.tk_painting:
-                                    self.canvas.tag_raise(i)
 
                             
                     self.selected_menu.add_command(label="Text Properties", command=lambda: 
@@ -394,38 +395,33 @@ class Painter(tk.Frame):
                                     font=font, 
                                     font_size=font_size, 
                                     color=color,
-                                    on_save=on_save_text, 
+                                    on_save=self.on_save_text, 
                                     multiple=(len(list(filter(lambda stroke: isinstance(stroke, TextStroke), self.selected_strokes))) != 1) 
                                     ))
 
                 if any([not i for i in is_text]):
-                    def on_save_shape(fill:str, color:str, width:int):
-                        for shape_stroke in filter(lambda stroke: not isinstance(stroke, TextStroke), self.selected_strokes):
-                            # if not isinstance(text_stroke, TextStroke): continue
-                            if hasattr(shape_stroke, "fill"):
-                                shape_stroke.fill = fill
-                            shape_stroke.color = color
-                        
-                            shape_stroke.width = width
-                        for stroke in self.strokes:
-                            if stroke in self.selected_strokes and not isinstance(stroke, TextStroke):
-                                stroke.paint()
-                            else:
-                                for i in stroke.tk_painting:
-                                    self.canvas.tag_raise(i)
                     
                     self.selected_menu.add_command(label="Shape Properties", command=lambda: 
                         ShapeOptions(self.root, 
                                      fill=self.fill.get(),
                                      color=self.color.get(), 
                                      width=self.width.get(), 
-                                     on_save=on_save_shape, 
+                                     on_save=self.on_save_shape, 
                                      multiple=(len(list(filter(lambda stroke: not isinstance(stroke, TextStroke), self.selected_strokes))) != 1) 
                                      ))
-
-                            
-
-
+                if len(self.selected_strokes) > 1:
+                    if frozenset(self.selected_strokes) in self.groups:
+                        self.selected_menu.add_command(label="Ungroup", command=lambda:self.groups.remove(frozenset(self.selected_strokes))) 
+                    else:
+                        for group in self.groups.copy():
+                            for stroke in self.selected_strokes:
+                                if stroke in group:
+                                    self.groups.remove(group)
+                                    break
+                        self.selected_menu.add_command(label="Group", command=lambda:self.groups.add(frozenset(self.selected_strokes))) 
+                        
+                        
+                        
                     
                 try:
                     self.selected_menu.tk_popup(event.x_root, event.y_root)
@@ -437,6 +433,39 @@ class Painter(tk.Frame):
                 self.menu.tk_popup(event.x_root, event.y_root)
             finally:
                 self.menu.grab_release()
+                
+    
+                
+    def on_save_text(self, font:str, font_size:int, color:str) -> None:
+        for text_stroke in filter(lambda stroke: isinstance(stroke, TextStroke), self.selected_strokes):
+            if not isinstance(text_stroke, TextStroke): continue
+            text_stroke.font = font
+            text_stroke.font_size = font_size
+            if len(color):
+                text_stroke.color = color
+        for stroke in self.strokes:
+            if stroke in self.selected_strokes and isinstance(stroke, TextStroke):
+                stroke.paint()
+            else:
+                for i in stroke.tk_painting:
+                    self.canvas.tag_raise(i)
+
+                
+    def on_save_shape(self, fill:str, color:str, width:int) -> None:
+        for shape_stroke in filter(lambda stroke: not isinstance(stroke, TextStroke), self.selected_strokes):
+            # if not isinstance(text_stroke, TextStroke): continue
+            if hasattr(shape_stroke, "fill"):
+                shape_stroke.fill = fill
+            shape_stroke.color = color
+        
+            shape_stroke.width = width
+        for stroke in self.strokes:
+            if stroke in self.selected_strokes and not isinstance(stroke, TextStroke):
+                stroke.paint()
+            else:
+                for i in stroke.tk_painting:
+                    self.canvas.tag_raise(i)
+
 
     def delete_selected(self) -> None:
         for stroke in self.selected_strokes:

@@ -20,3 +20,8 @@ class Shape(enum.Enum):
     OVAL = "2"
     TRIANGLE = "3"
     POLYGON = "4"
+    
+class ActionType(enum.Enum):
+    CREATE = "1"
+    CHANGE_PROP = "2"
+    CHANGE_ORDER ="3"

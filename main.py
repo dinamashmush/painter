@@ -69,7 +69,7 @@ class Application(tk.Frame):
 
 
 
-if sys.argv[1] == "--help":
+if len(sys.argv) >= 2 and sys.argv[1] == "--help":
     print("To run this program, simply run main.py using python3:")
     print("python3 main.py")
     print("no arguments needed. For more information about the program, see README.")

@@ -1,9 +1,9 @@
 import tkinter as tk
 
-import json
 from typing import *
 
 from helper_funcs.validate_funcs import validate_font_size
+from helper_funcs.load_available_fonts import load_available_fonts
 from components.color_btn import ColorBtn
 
 class TextOptions(tk.Toplevel):
@@ -18,13 +18,9 @@ class TextOptions(tk.Toplevel):
         self.on_save = on_save
         self.multiple = multiple
 
-        self.load_fonts_from_json()
+        self.fonts = load_available_fonts()
         self.create_widgets()
         
-    def load_fonts_from_json(self):
-        json_fonts = open("assets/fonts.json")
-        fonts = json.load(json_fonts)["fonts"]
-        self.fonts = fonts
         
     def create_widgets(self) -> None:
         
@@ -41,6 +37,8 @@ class TextOptions(tk.Toplevel):
         self.font_label1.pack(side=tk.LEFT)
         self.font_entry.pack(side=tk.LEFT)
         
+        self.font_label = tk.Label(self, text="Please pick one of the available fonts,\n if you will input a font that is not available,\n arial will be picked as default.")
+        self.font_label.grid(column=0, row=2)
         self.font_listbox = tk.Listbox(self)
         self.font_listbox.insert(tk.END, *self.fonts)
         
@@ -63,9 +61,8 @@ class TextOptions(tk.Toplevel):
         self.color_btn = ColorBtn(self, text="Color", color=self.color, on_change=set_color)
         self.color_btn.grid(column=3, row=2, pady=(15, 0))
         
-        
         self.btns_frame = tk.Frame(self)
-        self.btns_frame.grid(column=4, row=3, padx=(5, 0), pady=(130, 0))
+        self.btns_frame.grid(column=0, row=3, padx=(5, 0), pady=(130, 0))
         
         self.save_btn = tk.Button(self.btns_frame, command=self.save_changes, text="save")
         self.cancel_btn = tk.Button(self.btns_frame, command=self.destroy, text="cancel")

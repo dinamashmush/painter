@@ -6,6 +6,7 @@ from PIL import Image, ImageTk
 from enums import State
 from popups.text_options import TextOptions
 from helper_funcs.validate_funcs import validate_width
+from helper_funcs.load_available_fonts import load_available_fonts
 from components.color_btn import ColorBtn
 from components.tooltip import Tooltip
 from components.icon_button import IconButton
@@ -139,7 +140,12 @@ class ToolBar(tk.Frame):
         self.text_btn.pack(side=tk.LEFT, padx=5)
         
         def on_save(font:str, font_size:int, color:str):
-            self.font.set(font)
+            fonts = load_available_fonts()
+            if font in fonts:
+                self.font.set(font)
+            else:
+                self.font.set("Arial")
+
             self.font_size.set(font_size)
             self.color.set(color)
         

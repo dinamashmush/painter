@@ -1,8 +1,8 @@
 import tkinter as tk
 import os.path
-from PIL import ImageGrab
+from PIL import ImageGrab, Image, ImageDraw
 from canvasvg import saveall # type: ignore
-
+from typing import * 
 
 def export_to_png(canvas: tk.Canvas, root) -> None:
     if is_partially_off_screen(root):
@@ -11,9 +11,8 @@ def export_to_png(canvas: tk.Canvas, root) -> None:
     x = root.winfo_rootx() + 50
     y = root.winfo_rooty() + 30
     img = ImageGrab.grab()
-    img = img.crop((x*1.5, y*1.5, (x + canvas.winfo_width())
-                   * 1.5, (y + canvas.winfo_height())*1.5))
-
+    img = img.crop((x, y, (x + canvas.winfo_width())
+                   , (y + canvas.winfo_height())))
     i = 1
     while True:
         if os.path.isfile(f"image{i}.png"):
@@ -21,6 +20,7 @@ def export_to_png(canvas: tk.Canvas, root) -> None:
         else:
             img.save(f"image{i}.png")
             break
+
 
 
 def export_to_svg(canvas: tk.Canvas, root) -> None:

@@ -44,7 +44,7 @@ class Application(tk.Frame):
             font_size=self.font_size,
             width=self.width, 
             export={
-            "png": lambda: export_to_png(self.painter.canvas, root),
+            "png": lambda: self.painter.create_pil_img(),
             "svg": lambda: export_to_svg(self.painter.canvas, root),
             "eps": lambda: export_to_eps(self.painter.canvas)
             },

@@ -56,11 +56,12 @@ class ShapeOptions(tk.Toplevel):
         self.width_spinbox = tk.Spinbox(self, from_=1, to=9, validatecommand=(validatecommand,'%P'), validate="all")
         
         self.width_spinbox.delete(0, "end")
+        print("CCDCD", self.width)
         self.width_spinbox.insert(0, str(self.width))
         self.width_spinbox.grid(column=3, row=1, pady=10)
         
         self.btns_frame = tk.Frame(self)
-        self.btns_frame.grid(column=4, row=2, padx=(5, 0), pady=(150, 0))
+        self.btns_frame.grid(column=1, row=2, padx=(5, 0), pady=(150, 0))
         
         self.save_btn = tk.Button(self.btns_frame, command=self.save_changes, text="save")
         self.cancel_btn = tk.Button(self.btns_frame, command=self.destroy, text="cancel")

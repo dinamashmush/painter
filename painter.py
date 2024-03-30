@@ -2,13 +2,16 @@ from copy import copy
 from typing import *
 import json
 from datetime import datetime
+import os.path
 
 import tkinter as tk
+from PIL import Image, ImageDraw, ImageFont
 
 from stroke import *
 from action import *
 from enums import *
 from helper_funcs.calc_points_funcs import *
+from helper_funcs.load_available_fonts import load_available_fonts
 from popups.shape_options import ShapeOptions
 from popups.text_options import TextOptions
 
@@ -65,7 +68,8 @@ class Painter(tk.Frame):
         self.menu.add_command(label="Paste", command=self.pasted_copied)
 
         self.copied_strokes: Union[Literal[None], List[Stroke]] = None
-        self.copied_bbox: Union[Literal[None], Tuple[int, int, int, int]] = None
+        self.copied_bbox: Union[Literal[None],
+                                Tuple[int, int, int, int]] = None
         self.paste_coordinates: Union[Literal[None], Tuple[int, int]] = None
 
         self.text_index: Union[Literal[None], int] = None
@@ -114,7 +118,8 @@ class Painter(tk.Frame):
 
     def copy_selected(self) -> None:
         self.copied_strokes = []
-        self.copied_bbox = self.canvas.bbox(*[p for stroke in self.selected_strokes for p in stroke.tk_painting])
+        self.copied_bbox = self.canvas.bbox(
+            *[p for stroke in self.selected_strokes for p in stroke.tk_painting])
         for stroke in self.selected_strokes:
             copied_stroke = copy(stroke)
             self.copied_strokes.append(copied_stroke)
@@ -122,7 +127,8 @@ class Painter(tk.Frame):
     def pasted_copied(self) -> None:
         if not self.copied_strokes or not self.copied_bbox or not self.paste_coordinates:
             return
-        copied_coordinates = (self.copied_bbox[0] + (((self.copied_bbox[2]) - self.copied_bbox[0])//2), self.copied_bbox[1] + ((self.copied_bbox[3]-self.copied_bbox[1])//2))
+        copied_coordinates = (self.copied_bbox[0] + (((self.copied_bbox[2]) - self.copied_bbox[0])//2),
+                              self.copied_bbox[1] + ((self.copied_bbox[3]-self.copied_bbox[1])//2))
         dx, dy = self.paste_coordinates[0] - \
             copied_coordinates[0], self.paste_coordinates[1] - \
             copied_coordinates[1]
@@ -132,7 +138,7 @@ class Painter(tk.Frame):
                                       for co in new_stroke.coordinates]
             new_stroke.paint()
             self.strokes.append(new_stroke)
-            
+
         self.undo_actions = []
         self.actions.append(CreateAction(
             painter_strokes=self.strokes, strokes=self.strokes[-len(self.copied_strokes):]))
@@ -223,26 +229,6 @@ class Painter(tk.Frame):
                 self.active_selection_rect = self.canvas.create_rectangle(
                     *self.active_select_start, event.x, event.y, outline="#fff")
                 self.active_select_end = (event.x, event.y)
-
-        # elif self.state.get() == State.ERASE.value:
-        #     for stroke in self.strokes or stroke:
-        #         if (event.x, event.y) in stroke.coordinates:
-        #             stroke.delete()
-        #             index = stroke.coordinates.index((event.x, event.y))
-        #             if index != (len(stroke.coordinates) - 1):
-        #                 new_stroke2 = Stroke(
-        #                     *stroke.coordinates[index+1], stroke.line_style, 'red', stroke.width, self.canvas)
-        #                 new_stroke2.coordinates = stroke.coordinates[index + 1:]
-        #                 new_stroke2.paint()
-        #                 self.strokes.append(new_stroke2)
-
-        #             new_stroke1 = Stroke(
-        #                 *stroke.coordinates[0], stroke.line_style, 'blue', stroke.width, self.canvas)
-        #             new_stroke1.coordinates = stroke.coordinates[:index]
-        #             new_stroke1.paint()
-        #             self.strokes.append(new_stroke1)
-
-        #             self.strokes.remove(stroke)
 
     def remove_select(self) -> None:
         self.selected_strokes = []
@@ -352,7 +338,7 @@ class Painter(tk.Frame):
 
         for stroke in self.strokes:
             if stroke in self.selected_strokes:
-                continue            
+                continue
             if (isinstance(stroke, ShapeStroke) and stroke.shape.value == Shape.RECT.value) or (isinstance(stroke, TextStroke)):
                 x1, y1, x2, y2 = self.canvas.bbox(stroke.tk_painting[0])
                 if x1 > rect_range_x.stop or x2 < rect_range_x.start:
@@ -427,8 +413,7 @@ class Painter(tk.Frame):
 
                 if any(is_text):
                     if len(list(filter(lambda i: i, is_text))) == 1:
-                        text_stroke = self.selected_strokes[is_text.index(
-                            True)]
+                        text_stroke = self.selected_strokes[is_text.index(True)]
                         if isinstance(text_stroke, TextStroke):
                             font = text_stroke.font
                             font_size = text_stroke.font_size
@@ -453,12 +438,24 @@ class Painter(tk.Frame):
                                                                ))
 
                 if any([not i for i in is_text]):
-
+                    if len(list(filter(lambda i: not i, is_text))) == 1:
+                        shape_stroke = self.selected_strokes[is_text.index(False)]
+                        print(shape_stroke.width)
+                        if hasattr(shape_stroke, "fill"):
+                                fill = shape_stroke.fill
+                        else:
+                            fill = self.fill.get()
+                        color = shape_stroke.color
+                        width = shape_stroke.width
+                    else:
+                        fill = self.fill.get()
+                        color = self.color.get()
+                        width = self.width.get()
                     self.selected_menu.add_command(label="Shape Properties", command=lambda:
                                                    ShapeOptions(self.root,
-                                                                fill=self.fill.get(),
-                                                                color=self.color.get(),
-                                                                width=self.width.get(),
+                                                                fill=fill,
+                                                                color=color,
+                                                                width=width,
                                                                 on_save=self.on_save_shape,
                                                                 multiple=(len(list(filter(lambda stroke: not isinstance(
                                                                     stroke, TextStroke), self.selected_strokes))) != 1)
@@ -496,7 +493,11 @@ class Painter(tk.Frame):
             changed_strokes.append(text_stroke)
             og_props.append(
                 {"font": text_stroke.font, "font_size": text_stroke.font_size, "color": text_stroke.color})
-            text_stroke.font = font
+            fonts = load_available_fonts()
+            if font in fonts:
+                text_stroke.font = font
+            else:
+                text_stroke.font = "Arial"
             text_stroke.font_size = font_size
             if len(color):
                 text_stroke.color = color
@@ -541,7 +542,8 @@ class Painter(tk.Frame):
         self.remove_select()
 
     def delete_all(self) -> None:
-        self.actions.append(ClearCanvasAction(self.strokes, [i for i in self.strokes], self.canvas))
+        self.actions.append(ClearCanvasAction(
+            self.strokes, [i for i in self.strokes], self.canvas))
         self.canvas.delete("all")
         self.strokes = []
         self.selected_strokes = []
@@ -549,17 +551,17 @@ class Painter(tk.Frame):
     def handle_typing(self, event) -> None:
         if not self.curr_stroke or not isinstance(self.curr_stroke, TextStroke) or not isinstance(self.text_index, int):
             return
-        if event.keycode == 8:  # backspace
+        if event.keysym == 'BackSpace':
             if self.text_index <= 0:
                 return
             self.curr_stroke.remove_char(self.text_index - 1)
             self.text_index -= 1
             self.create_outline_curr_text()
-        elif event.keycode == 37:  # left arrow
+        elif event.keysym == "Left":
             if self.text_index <= 0:
                 return
             self.text_index -= 1
-        elif event.keycode == 39:  # right arrow
+        elif event.keysym == "Right":  
             if self.text_index >= len(self.curr_stroke.text):
                 return
             self.text_index += 1
@@ -613,6 +615,7 @@ class Painter(tk.Frame):
                 elif stroke["type"] == "TriangleStroke":
                     s = TriangleStroke(0, 0, LineStyle[stroke["line_style"]], stroke["color"],
                                        stroke["width"], self.canvas, fill=stroke["fill"], shape=Shape.TRIANGLE)
+                
                 s.coordinates = [tuple(co) for co in stroke["coordinates"]] # type: ignore
                 s.paint()
                 self.strokes.append(s)
@@ -621,3 +624,57 @@ class Painter(tk.Frame):
             return True
         except:
             return False
+
+    def create_pil_img(self) -> None:
+        img = Image.new("RGB", (self.canvas.winfo_width(),
+                        self.canvas.winfo_height()), "black")
+        draw = ImageDraw.Draw(img)
+
+        for stroke in self.strokes:
+            if isinstance(stroke, TriangleStroke):
+                mid = (
+                    stroke.coordinates[0][0] + stroke.coordinates[1][0])//2, stroke.coordinates[1][1]
+                draw.polygon([*stroke.coordinates[0], *mid, stroke.coordinates[1][0], stroke.coordinates[0][1]],
+                             fill=stroke.fill if len(stroke.fill) else None, outline=stroke.color, width=stroke.width)
+            elif isinstance(stroke, PolygonStroke):
+                draw.polygon(stroke.coordinates, fill=stroke.fill if len(
+                    stroke.fill) else None, outline=stroke.color, width=stroke.width)
+            elif isinstance(stroke, ShapeStroke):
+                print("hih")
+                coordinates = min(stroke.coordinates[0][0], stroke.coordinates[1][0]), min(stroke.coordinates[0][1], stroke.coordinates[1][1]), max(
+                    stroke.coordinates[0][0], stroke.coordinates[1][0]), max(stroke.coordinates[0][1], stroke.coordinates[1][1])
+                if stroke.shape.value == Shape.OVAL.value:
+                    draw.ellipse(coordinates, outline=stroke.color, fill=stroke.fill if len(
+                        stroke.fill) else None, width=stroke.width)
+                else:
+                    draw.rectangle(coordinates, outline=stroke.color, fill=stroke.fill if len(
+                        stroke.fill) else None, width=stroke.width)
+            elif isinstance(stroke, FreeStyleStroke):
+                for i, co in enumerate(stroke.coordinates):
+                    if i == 0:
+                        continue
+                    draw.line(
+                        (*stroke.coordinates[i-1], *co), fill=stroke.color, width=stroke.width)
+            elif isinstance(stroke, TextStroke):
+                print(f"./assets/fonts/{stroke.font}.ttf")
+                font = ImageFont.truetype(
+                    f"./assets/fonts/{stroke.font}.ttf", int((stroke.font_size / 72) * 96))
+                _, descent = font.getmetrics()
+                text_width = font.getmask(stroke.text).getbbox()[2]
+                print(text_width)
+                text_height = font.getmask(stroke.text).getbbox()[3] + descent
+
+                # Calculate the coordinates to center the text
+                x = stroke.coordinates[0][0] - (text_width // 2)
+                print(stroke.coordinates)
+                print(stroke.coordinates[0][0], x)
+                y = stroke.coordinates[0][1] - (text_height // 2)
+
+                draw.text((x, y), stroke.text, fill=stroke.color, font=font)
+        i = 1
+        while True:
+            if os.path.isfile(f"image{i}.png"):
+                i += 1
+            else:
+                img.save(f"image{i}.png")
+                break

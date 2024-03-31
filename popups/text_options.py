@@ -12,7 +12,7 @@ class TextOptions(tk.Toplevel):
     """
     def __init__(self, master, font: str, font_size: int, color:str, bold: bool, italic: bool, on_save: Callable, multiple:bool = False):
         super().__init__(master)
-        self.geometry("500x250+150+150")
+        self.geometry("550x300+150+150")
         self.grab_set()
 
         self.font = font
@@ -89,8 +89,8 @@ class TextOptions(tk.Toplevel):
             self.italic_btn.configure(relief="sunken")
         if self.bold:
             self.bold_btn.configure(relief="sunken")
-        self.italic_btn.pack(padx=3)
-        self.bold_btn.pack(padx=3)
+        self.italic_btn.pack(padx=3, side=tk.LEFT)
+        self.bold_btn.pack(padx=3, side=tk.LEFT)
         
         self.btns_frame = tk.Frame(self)
         self.btns_frame.grid(column=0, row=3, padx=(5, 0), pady=(130, 0))
@@ -102,6 +102,7 @@ class TextOptions(tk.Toplevel):
         
         def get_font_listbox():
             self.font_listbox_placeholder.grid_forget()
+            self.font_listbox.delete(0, tk.END)
             self.font_listbox.insert(tk.END, *self.fonts)
             self.font_listbox.grid(column=1, row=1, rowspan=3, padx=(0, 3))
 

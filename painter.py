@@ -502,96 +502,100 @@ class Painter(tk.Frame):
             event (tk.Event): tk click event
         """
         
-        if len(self.selected_strokes) > 0 and self.selected_rect_locs:
-            if event.x > self.selected_rect_locs[0] and event.x < self.selected_rect_locs[2] and event.y > self.selected_rect_locs[1] and event.y < self.selected_rect_locs[3]:
-                
-                self.try_to_delete("Text Properties")
-                self.try_to_delete("Shape Properties")
-                self.try_to_delete("Ungroup")
-                self.try_to_delete("Group")
+        if len(self.selected_strokes) > 0 and \
+            self.selected_rect_locs and \
+            event.x > self.selected_rect_locs[0] and \
+            event.x < self.selected_rect_locs[2] and \
+            event.y > self.selected_rect_locs[1] and \
+            event.y < self.selected_rect_locs[3]:
+            
+            self.try_to_delete("Text Properties")
+            self.try_to_delete("Shape Properties")
+            self.try_to_delete("Ungroup")
+            self.try_to_delete("Group")
 
-                is_text = [isinstance(stroke, TextStroke)
-                           for stroke in self.selected_strokes]
+            is_text = [isinstance(stroke, TextStroke)
+                        for stroke in self.selected_strokes]
 
-                # if there is a text stroke selected, add the Text Options option to the menu
-                if any(is_text):
-                    if len(list(filter(lambda i: i, is_text))) == 1:
-                        text_stroke = self.selected_strokes[is_text.index(True)]
-                        if isinstance(text_stroke, TextStroke):
-                            font = text_stroke.font
-                            font_size = text_stroke.font_size
-                            color = text_stroke.color
-                            bold = text_stroke.bold
-                            italic = text_stroke.italic
-                        else:
-                            font = ""
-                            font_size = 14
-                            color = ""
-                            bold = False
-                            italic = False
+            # if there is a text stroke selected, add the Text Options option to the menu
+            if any(is_text):
+                if len(list(filter(lambda i: i, is_text))) == 1:
+                    text_stroke = self.selected_strokes[is_text.index(True)]
+                    if isinstance(text_stroke, TextStroke):
+                        font = text_stroke.font
+                        font_size = text_stroke.font_size
+                        color = text_stroke.color
+                        bold = text_stroke.bold
+                        italic = text_stroke.italic
                     else:
                         font = ""
-                        color = ""
                         font_size = 14
+                        color = ""
                         bold = False
                         italic = False
+                else:
+                    font = ""
+                    color = ""
+                    font_size = 14
+                    bold = False
+                    italic = False
 
-                    self.selected_menu.add_command(label="Text Properties", 
-                                                   command=lambda:
-                                                   TextOptions(self.root,
-                                                               font=font,
-                                                               font_size=font_size,
-                                                               color=color,
-                                                               on_save=self.on_save_text,
-                                                               bold=bold,
-                                                               italic=italic,
-                                                               multiple=(len(list(filter(lambda stroke: isinstance(
-                                                                   stroke, TextStroke), self.selected_strokes))) != 1)
-                                                               ))
-                    
-                # if there is a shape stroke selected, add the Shape Options option to the menu
-                if any([not i for i in is_text]):
-                    if len(list(filter(lambda i: not i, is_text))) == 1:
-                        shape_stroke = self.selected_strokes[is_text.index(False)]
-                        if hasattr(shape_stroke, "fill"):
-                                fill = shape_stroke.fill
-                        else:
-                            fill = self.fill.get()
-                        color = shape_stroke.color
-                        width = shape_stroke.width
+                self.selected_menu.add_command(label="Text Properties", 
+                                                command=lambda:
+                                                TextOptions(self.root,
+                                                            font=font,
+                                                            font_size=font_size,
+                                                            color=color,
+                                                            on_save=self.on_save_text,
+                                                            bold=bold,
+                                                            italic=italic,
+                                                            multiple=(len(list(filter(lambda stroke: isinstance(
+                                                                stroke, TextStroke), self.selected_strokes))) != 1)
+                                                            ))
+                
+            # if there is a shape stroke selected, add the Shape Options option to the menu
+            if any([not i for i in is_text]):
+                if len(list(filter(lambda i: not i, is_text))) == 1:
+                    shape_stroke = self.selected_strokes[is_text.index(False)]
+                    if hasattr(shape_stroke, "fill"):
+                            fill = shape_stroke.fill
                     else:
                         fill = self.fill.get()
-                        color = self.color.get()
-                        width = self.width.get()
-                    self.selected_menu.add_command(label="Shape Properties", 
-                                                   command=lambda:
-                                                   ShapeOptions(self.root,
-                                                                fill=fill,
-                                                                color=color,
-                                                                width=width,
-                                                                on_save=self.on_save_shape,
-                                                                multiple=(len(list(filter(lambda stroke: not isinstance(
-                                                                    stroke, TextStroke), self.selected_strokes))) != 1)
-                                                                ))
-                    
-                # if there are more than one stroke, add the option to group or ungroup
-                if len(self.selected_strokes) > 1:
-                    if frozenset(self.selected_strokes) in self.groups:
-                        self.selected_menu.add_command(label="Ungroup", command=lambda: self.groups.remove(
-                            frozenset(self.selected_strokes)))
-                    else:
-                        for group in self.groups.copy():
-                            for stroke in self.selected_strokes:
-                                if stroke in group:
-                                    self.groups.remove(group)
-                                    break
-                        self.selected_menu.add_command(label="Group", command=lambda: self.groups.add(
-                            frozenset(self.selected_strokes)))
-                # open the menu
-                try:
-                    self.selected_menu.tk_popup(event.x_root, event.y_root)
-                finally:
-                    self.selected_menu.grab_release()
+                    color = shape_stroke.color
+                    width = shape_stroke.width
+                else:
+                    fill = self.fill.get()
+                    color = self.color.get()
+                    width = self.width.get()
+                self.selected_menu.add_command(label="Shape Properties", 
+                                                command=lambda:
+                                                ShapeOptions(self.root,
+                                                            fill=fill,
+                                                            color=color,
+                                                            width=width,
+                                                            on_save=self.on_save_shape,
+                                                            multiple=(len(list(filter(lambda stroke: not isinstance(
+                                                                stroke, TextStroke), self.selected_strokes))) != 1)
+                                                            ))
+                
+            # if there are more than one stroke, add the option to group or ungroup
+            if len(self.selected_strokes) > 1:
+                if frozenset(self.selected_strokes) in self.groups:
+                    self.selected_menu.add_command(label="Ungroup", command=lambda: self.groups.remove(
+                        frozenset(self.selected_strokes)))
+                else:
+                    for group in self.groups.copy():
+                        for stroke in self.selected_strokes:
+                            if stroke in group:
+                                self.groups.remove(group)
+                                break
+                    self.selected_menu.add_command(label="Group", command=lambda: self.groups.add(
+                        frozenset(self.selected_strokes)))
+            # open the menu
+            try:
+                self.selected_menu.tk_popup(event.x_root, event.y_root)
+            finally:
+                self.selected_menu.grab_release()
         else:
             # open the menu to paste
             self.paste_coordinates = (event.x, event.y)

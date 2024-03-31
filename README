@@ -1,21 +1,23 @@
-# צייר
+# Painter
 
-## הרחבות
+## Extensions
 
-### בחירת מספר אובייקטים והזזתם ביחד
-יש לעבור למצב בחירה ולסמן עם העכבר. יווצר מלבן, וכל האלמנטים שבתוכו ייבחרו. לאחר מכן ניתן לגרור את הצורות על פני הקנבס.
+### Selecting multiple elements and moving them together
+click on the Select button, and then mark by dragging across the canvas a rectangle, the elements in the rectangle will be selected.to move, drag you mouse across the canvas while selecting some elements and starting the dragging action from inside the selected rectangle.
 
-### אפשרות לביטול ואחזור פעולות
-באמצעות 2 הכפתורים של ביטול ואחזור, בצד שמאל
+### Undo + Redo actions
+click on the undo and redo buttons on the toolbar.
 
-### תמיכה בהעתקה והדבקה
-העתקה: לאחר שנבחרו מספר אלמנטים, יש ללחוץ קליק ימני ולבחור באפשרות של 'copy'. 
-הדבקה: ללחוץ קליק ימני (כשאין אלמנטים נבחרים) ולבחור באפשרות 'paste'
+### copy and paste
+copy: right click on selected elements and choose the 'Copy' option
+paste: right click somewhere else on the canvas and choose the 'Paste' option
 
-### קיבוץ ופירוק קבוצות של אלמנטים
-לבחור את קבוצת האלמנטים, ללחוץ קליק ימני ולבחור באפשרות 'group' או 'ungroup'.
+### Group and Ungroup elements
+while selecting a group of ungrouped elements, right click and select the 'Group' option
+while selecting a group of grouped elements, right click and select the 'Ungroup' option
 
-### תמיכה בייצוא של קבצים מסוג eps, svg
-ללחוץ על כפתור Export As ולבחור בפורמט הרצוי.
+### Exporting as .svg or .eps
+click the 'Export As' button and choose the desired format
 
-
+### Bold and Italic options for text
+in Text Options, (modifying existing text or setting the settings for future text) click on the bold or italic buttons.

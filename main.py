@@ -94,7 +94,7 @@ else:
         app.painter.handle_typing(event)
 
 
-    root.geometry('830x580')
+    root.geometry('850x680')
     root.resizable(False, False)
 
 

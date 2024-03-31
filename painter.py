@@ -858,15 +858,18 @@ class Painter(tk.Frame):
                     font_file += "-bold"
                 if stroke.italic:
                     font_file += "-italic"
-                font = ImageFont.truetype( f"{font_file}.ttf", 
-                                          int((stroke.font_size / 72) * 96),)
-                _, descent = font.getmetrics()
-                text_width = font.getmask(stroke.text).getbbox()[2]
-                text_height = font.getmask(stroke.text).getbbox()[3] + descent
-                x = stroke.coordinates[0][0] - (text_width // 2)
-                y = stroke.coordinates[0][1] - (text_height // 2)
+                try:
+                    font: Union[ImageFont.FreeTypeFont] = ImageFont.truetype( f"{font_file}.ttf", 
+                                            int((stroke.font_size / 72) * 96))
+                    _, descent = font.getmetrics()
+                    text_width = font.getmask(stroke.text).getbbox()[2]
+                    text_height = font.getmask(stroke.text).getbbox()[3] + descent
+                    x = stroke.coordinates[0][0] - (text_width // 2)
+                    y = stroke.coordinates[0][1] - (text_height // 2)
+                    draw.text((x, y), stroke.text, fill=stroke.color, font=font)
+                except:
+                    pass
 
-                draw.text((x, y), stroke.text, fill=stroke.color, font=font)
                 
         # save the image to a png file
         i = 1

@@ -7,7 +7,7 @@ from typing import *
 class ColorBtn(tk.Button):
     """a button with a small image of the picked color to pick a color
     """
-    def __init__(self, master, text:str, color:str, on_change:Callable) -> None:
+    def __init__(self, master: tk.Misc, text:str, color:str, on_change:Callable[[str], None]) -> None:
         super().__init__(master, text=text, compound="left", command=self.btn_command)
         self.color = color
         self.get_image()

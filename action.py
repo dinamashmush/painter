@@ -19,7 +19,7 @@ class Action():
     def __init__(self, painter_strokes: List[Stroke]) -> None:
         self.painter_strokes = painter_strokes
     
-    def undo(self):
+    def undo(self) -> Any:
         """
         Undo the action.
 
@@ -27,7 +27,7 @@ class Action():
             Action: The action that was undone.
         """
         pass
-    def redo(self):
+    def redo(self) -> Any:
         """
         redo the action.
 
@@ -39,7 +39,7 @@ class Action():
 class CreateAction(Action):
     """a create action
     """
-    def __init__(self, painter_strokes: List[Stroke], strokes: List[Stroke]):
+    def __init__(self, painter_strokes: List[Stroke], strokes: List[Stroke]) -> None:
         super().__init__(painter_strokes)
         self.strokes = strokes
         
@@ -59,7 +59,7 @@ class CreateAction(Action):
 class ChangePropAction(Action):
     """a change properties action.
     """
-    def __init__(self, painter_strokes: List[Stroke], strokes:List[Stroke], og_props: List[Dict[str, Any]]):
+    def __init__(self, painter_strokes: List[Stroke], strokes:List[Stroke], og_props: List[Dict[str, Any]]) -> None:
         super().__init__(painter_strokes)
         self.strokes = strokes
         self.og_props = og_props
@@ -137,19 +137,19 @@ class LoadJsonAction(Action):
             stroke.paint()
         return LoadJsonAction(self.painter_strokes, strokes=old_strokes)
     
-    def redo(self):
+    def redo(self) -> Action:
         return self.undo()
     
 class DeleteAction(Action):
     def __init__(self, painter_strokes: List[Stroke], strokes_deleted: List[Stroke]) -> None:
         super().__init__(painter_strokes)
         self.strokes = strokes_deleted
-    def undo(self):
+    def undo(self) -> Action:
         for stroke in self.strokes:
             self.painter_strokes.append(stroke)
             stroke.paint()
         return DeleteAction(painter_strokes=self.painter_strokes, strokes_deleted=self.strokes)
-    def redo(self):
+    def redo(self) -> Action:
         for stroke in self.strokes:
             self.painter_strokes.remove(stroke)
             stroke.delete()

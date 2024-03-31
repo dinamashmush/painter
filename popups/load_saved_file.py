@@ -5,7 +5,7 @@ import tkinter as tk
 class LoadSavedFile(tk.Toplevel):
     """a popup to get the name of the file to load
     """
-    def __init__(self, master, load_json:Callable):
+    def __init__(self, master: tk.Misc, load_json:Callable[[str],bool]) -> None:
         super().__init__(master)
         self.geometry("370x130+300+150")
         self.grab_set()
@@ -19,7 +19,7 @@ class LoadSavedFile(tk.Toplevel):
         self.entry = tk.Entry(self, width=1)
         self.entry.grid(column=0, columnspan=2, row=2, sticky=tk.NSEW, padx=70, pady=10)
         
-        def command():
+        def command() -> None:
             success = load_json(self.entry.get())
             if success:
                 self.destroy()

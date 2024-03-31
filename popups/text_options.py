@@ -10,7 +10,7 @@ from components.icon_button import IconButton
 class TextOptions(tk.Toplevel):
     """a popup to change text properties
     """
-    def __init__(self, master, font: str, font_size: int, color:str, bold: bool, italic: bool, on_save: Callable, multiple:bool = False):
+    def __init__(self, master: tk.Misc, font: str, font_size: int, color:str, bold: bool, italic: bool, on_save: Callable, multiple:bool = False) -> None:
         super().__init__(master)
         self.geometry("550x300+150+150")
         self.grab_set()
@@ -100,7 +100,7 @@ class TextOptions(tk.Toplevel):
         self.save_btn.pack(side=tk.LEFT)
         self.cancel_btn.pack(padx=5, side=tk.LEFT)
         
-        def get_font_listbox():
+        def get_font_listbox() -> None:
             self.font_listbox_placeholder.grid_forget()
             self.font_listbox.delete(0, tk.END)
             self.font_listbox.insert(tk.END, *self.fonts)
@@ -120,7 +120,7 @@ class TextOptions(tk.Toplevel):
                      italic=self.italic)
         self.destroy()
 
-    def  on_typing_font(self, event) -> None:
+    def  on_typing_font(self, event: tk.Event) -> None:
         value = event.widget.get()
         if value:
             self.font_listbox.delete(0, tk.END)
@@ -132,7 +132,7 @@ class TextOptions(tk.Toplevel):
             self.font_listbox.insert(tk.END, *self.fonts)
 
     
-    def on_select_font(self, event):
+    def on_select_font(self, event: tk.Event) -> None:
         selected_item = event.widget.get(tk.ACTIVE)
         if not selected_item:
             return

@@ -15,7 +15,7 @@ from popups.load_saved_file import LoadSavedFile
 class ToolBar(tk.Frame):
     """the toolbar - controlling drawing tools and options.
     """
-    def __init__(self, root, color: tk.StringVar, fill:tk.StringVar, state: tk.StringVar, width: tk.IntVar, bold: tk.BooleanVar, italic: tk.BooleanVar, export: Dict[str, Callable], font: tk.StringVar, font_size: tk.IntVar, delete_all: Callable, save_to_json:Callable, load_json:Callable, undo:Callable, redo:Callable):
+    def __init__(self, root: tk.Misc, color: tk.StringVar, fill:tk.StringVar, state: tk.StringVar, width: tk.IntVar, bold: tk.BooleanVar, italic: tk.BooleanVar, export: Dict[str, Callable], font: tk.StringVar, font_size: tk.IntVar, delete_all: Callable, save_to_json:Callable, load_json:Callable, undo:Callable, redo:Callable) -> None:
         super().__init__(root)
         self.root = root
         self.grid(row=1, column=2, padx=(10, 30), pady=(40, 30))
@@ -71,7 +71,7 @@ class ToolBar(tk.Frame):
         self.export_menu.add_command(label="svg", command=self.export["svg"])
         self.export_menu.add_command(label="eps", command=self.export["eps"])
 
-        def open_export_menu():
+        def open_export_menu() -> None:
             try:
                 self.export_menu.tk_popup(self.export_btn.winfo_rootx(), self.export_btn.winfo_rooty())
             finally:
@@ -157,7 +157,7 @@ class ToolBar(tk.Frame):
         self.text_btn = IconButton(self.text_frame, img_path="./assets/icons-text.png",img_size=24, command=lambda: self.change_selected_state(State.TEXT.value, self.text_btn))
         self.text_btn.pack(side=tk.LEFT, padx=5)
         
-        def on_save(font:str, font_size:int, color:str, bold: bool, italic: bool):
+        def on_save(font:str, font_size:int, color:str, bold: bool, italic: bool) -> None:
             fonts = load_available_fonts()
             if font in fonts:
                 self.font.set(font)

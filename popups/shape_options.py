@@ -7,7 +7,7 @@ from helper_funcs.validate_funcs import validate_width
 class ShapeOptions(tk.Toplevel):
     """a popup for changing shape properties
     """
-    def __init__(self, master, fill: str, color: str, width: int, on_save:Callable, multiple:bool):
+    def __init__(self, master: tk.Misc, fill: str, color: str, width: int, on_save:Callable, multiple:bool) -> None:
         super().__init__(master)
         self.geometry("500x300+150+150")
         self.grab_set()

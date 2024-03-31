@@ -19,7 +19,7 @@ from popups.text_options import TextOptions
 class Painter(tk.Frame):
     """The Painter class handles the canvas and all actions performed on it
     """
-    def __init__(self, master, root, color: tk.StringVar, fill: tk.StringVar, state: tk.StringVar, bold: tk.BooleanVar, italic: tk.BooleanVar, width: tk.IntVar, font: tk.StringVar, font_size: tk.IntVar) -> None:
+    def __init__(self, master: tk.Misc, root: tk.Misc, color: tk.StringVar, fill: tk.StringVar, state: tk.StringVar, bold: tk.BooleanVar, italic: tk.BooleanVar, width: tk.IntVar, font: tk.StringVar, font_size: tk.IntVar) -> None:
         super().__init__(master)
 
         self.grid(row=1, column=1, padx=(50, 0), pady=(40, 40))
@@ -162,7 +162,7 @@ class Painter(tk.Frame):
         self.actions.append(CreateAction(painter_strokes=self.strokes, 
                                          strokes=self.strokes[-len(self.copied_strokes):]))
 
-    def handle_drag(self, event) -> None:
+    def handle_drag(self, event: tk.Event) -> None:
         """handles drag event according to the state, can handle the following states:
         SELECT,
         DRAW: PAINT, RECT, OVAL, TRIANGLE
@@ -386,7 +386,7 @@ class Painter(tk.Frame):
         self.text_index = 0
         self.create_outline_curr_text()
 
-    def create_outline_curr_text(self):
+    def create_outline_curr_text(self) -> None:
         """
         Create outline for the current text stroke on the canvas.
         """
@@ -487,7 +487,7 @@ class Painter(tk.Frame):
         self.selected_rect = self.canvas.create_rectangle(*bbox, outline="green")
         self.selected_rect_locs = bbox
 
-    def try_to_delete(self, label):
+    def try_to_delete(self, label: str) -> None:
         try:
             self.selected_menu.delete(label)
         except:

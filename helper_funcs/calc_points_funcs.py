@@ -1,5 +1,6 @@
+from typing import *
 
-def calculate_points_on_line(x0, y0, x1, y1, num_points=20):
+def calculate_points_on_line(x0:int, y0:int, x1:int, y1:int, num_points:int=20) -> List[Tuple[int, int]]:
     """Calculate a list of points on a line segment defined by two endpoints.
 
     Args:
@@ -12,34 +13,30 @@ def calculate_points_on_line(x0, y0, x1, y1, num_points=20):
     Returns:
         list: A list of (x, y) tuples representing the points on the line segment.
     """
+    x_values = [x0 + i * (x1 - x0) / (num_points - 1)
+                for i in range(num_points)]
     # Check if x0 is equal to x1
     if x0 == x1:
         # Handle the case of a vertical line
-        m = None
-        b = None
+        # m: Union[None, float] = None
+        # b: Union[None, float] = None
+        y_values = [y0 + i * (y1 - y0) / (num_points - 1)
+                    for i in range(num_points)]
+
     else:
         # Calculate the slope and y-intercept of the line
         m = (y1 - y0) / (x1 - x0)
         b = y0 - m * x0
+        y_values = [m * x + b for x in x_values]
 
     # Calculate the x coordinates of the points
-    x_values = [x0 + i * (x1 - x0) / (num_points - 1)
-                for i in range(num_points)]
-
-    # Calculate the corresponding y coordinates
-    if m is None:
-        # Handle the case of a vertical line
-        y_values = [y0 + i * (y1 - y0) / (num_points - 1)
-                    for i in range(num_points)]
-    else:
-        y_values = [m * x + b for x in x_values]
 
     # Combine the x and y coordinates into point tuples
     points = [(int(x), int(y)) for x, y in zip(x_values, y_values)]
 
     return points
 
-def is_point_inside_triangle(point, A, B, C):
+def is_point_inside_triangle(point: Tuple[int, int], A: Tuple[int, int], B: Tuple[int, int], C: Tuple[int, int]) -> bool:
     """
     Check if a point is inside a triangle using cross product method.
 
@@ -50,7 +47,7 @@ def is_point_inside_triangle(point, A, B, C):
     Returns:
     bool: True if the point is inside the triangle, False otherwise.
     """
-    def sign(p1, p2, p3):
+    def sign(p1: Tuple[int, int], p2: Tuple[int, int], p3: Tuple[int, int]) -> int:
         return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1])
 
     b1 = sign(point, A, B) < 0.0
@@ -60,7 +57,7 @@ def is_point_inside_triangle(point, A, B, C):
     return ((b1 == b2) and (b2 == b3))
 
 
-def is_point_inside_oval(point, rect_point1, rect_point2):
+def is_point_inside_oval(point: Tuple[int, int], rect_point1: Tuple[int, int], rect_point2: Tuple[int, int]) -> bool:
     """
 Check if a point is inside an oval given the bounding rectangle.
 

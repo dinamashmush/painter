@@ -15,7 +15,7 @@ class Application(tk.Frame):
     """main application
     """
 
-    def __init__(self, master=None) -> None:
+    def __init__(self, master: tk.Misc) -> None:
         super().__init__(master)
         self.master = master
         self.grid(row=0, column=0)
@@ -78,19 +78,19 @@ else:
 
     root = tk.Tk()
 
-    def left_click(event):
+    def left_click(event: tk.Event) -> None:
         app.painter.handle_left_click(event)
 
 
-    def button_release(event):
+    def button_release(event: tk.Event) -> None:
         app.painter.handle_btn_release()
 
 
-    def right_click(event):
+    def right_click(event: tk.Event) -> None:
         app.painter.handle_right_click(event)
 
 
-    def handle_key_press(event):
+    def handle_key_press(event: tk.Event) -> None:
         app.painter.handle_typing(event)
 
 

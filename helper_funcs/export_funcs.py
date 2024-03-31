@@ -5,7 +5,7 @@ from typing import *
 
 
 
-def export_to_svg(canvas: tk.Canvas, root) -> None:
+def export_to_svg(canvas: tk.Canvas, root: tk.Misc) -> None:
     """
     Export the canvas to SVG format.
 
@@ -47,7 +47,7 @@ def export_to_eps(canvas: tk.Canvas) -> None:
             break
 
 
-def error_popup(root, text) -> None:
+def error_popup(root: tk.Misc, text: str) -> None:
         """
         Display an error popup window.
 

@@ -1,6 +1,7 @@
 import json
+from typing import *
 
-def load_available_fonts():
+def load_available_fonts() -> List[str]:
     """
     Load available fonts from a JSON file.
 
@@ -8,5 +9,5 @@ def load_available_fonts():
         List[str]: A list of available fonts.
     """
     json_fonts = open("assets/fonts.json")
-    fonts = json.load(json_fonts)["fonts"]
+    fonts: List[str] = json.load(json_fonts)["fonts"]
     return fonts

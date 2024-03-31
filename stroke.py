@@ -51,7 +51,7 @@ class FreeStyleStroke(Stroke):
         self.prev_y = y
 
 
-    def paint(self):
+    def paint(self) -> None:
         
         self.delete()
         
@@ -72,8 +72,8 @@ class FreeStyleStroke(Stroke):
         self.prev_x = x
         self.prev_y = y
         
-    def __copy__(self):
-        stroke =  FreeStyleStroke(self.coordinates[0], self.coordinates[1], color=self.color, width=self.width, canvas=self.canvas)
+    def __copy__(self) -> Stroke:
+        stroke =  FreeStyleStroke(self.coordinates[0][0], self.coordinates[0][1], color=self.color, width=self.width, canvas=self.canvas)
         stroke.coordinates = self.coordinates
         return stroke
 
@@ -81,7 +81,7 @@ class FreeStyleStroke(Stroke):
 class ShapeStroke(Stroke):
     """a shape stroke - rectangle or oval
     """
-    def __init__(self, x: int, y: int, color: str, width: int, canvas: tk.Canvas, fill: str, shape:Shape):
+    def __init__(self, x: int, y: int, color: str, width: int, canvas: tk.Canvas, fill: str, shape:Shape) -> None:
         super().__init__(x, y, color, width, canvas)
         self.shape: Shape = shape
         self.fill = fill
@@ -101,8 +101,8 @@ class ShapeStroke(Stroke):
         elif self.shape.value == Shape.RECT.value:
             self.tk_painting = [self.canvas.create_rectangle( *self.coordinates[0],*self.coordinates[1], outline=self.color, width=self.width, fill=self.fill)]
     
-    def __copy__(self):
-        stroke =  ShapeStroke(self.coordinates[0], self.coordinates[1], color=self.color, width=self.width, canvas=self.canvas, shape=self.shape, fill=self.fill,)
+    def __copy__(self) -> Stroke:
+        stroke =  ShapeStroke(self.coordinates[0][0], self.coordinates[0][1], color=self.color, width=self.width, canvas=self.canvas, shape=self.shape, fill=self.fill,)
         stroke.coordinates = self.coordinates
         return stroke
 
@@ -110,7 +110,7 @@ class ShapeStroke(Stroke):
 class TextStroke(Stroke):
     """a text stroke
     """
-    def __init__(self, x: int, y: int, color: str, width: int, canvas: tk.Canvas,font:str, font_size:int, bold:bool, italic:bool, text:str = ""):
+    def __init__(self, x: int, y: int, color: str, width: int, canvas: tk.Canvas,font:str, font_size:int, bold:bool, italic:bool, text:str = "") -> None:
         super().__init__(x, y, color, width, canvas)
         self.text: str = text
         self.font_size = font_size
@@ -123,7 +123,7 @@ class TextStroke(Stroke):
         self.text = self.text[:index]+char+self.text[index:]
         self.paint()
     
-    def remove_char(self, index:int):
+    def remove_char(self, index:int) -> None:
 
         self.text = self.text[:index] + self.text[index + 1:]
         self.paint()
@@ -140,7 +140,7 @@ class TextStroke(Stroke):
         self.tk_painting = [self.canvas.create_text(*self.coordinates[0], text=self.text, fill=self.color, font=font)]
             
 
-    def __copy__(self):
+    def __copy__(self) -> Stroke:
         stroke = TextStroke(*self.coordinates[0], color=self.color, width=self.width, canvas=self.canvas, text=self.text, bold=self.bold, italic=self.italic, font=self.font, font_size=self.font_size)
         stroke.delete()
         stroke.tk_painting = []
@@ -160,7 +160,7 @@ class PolygonStroke(Stroke):
             self.canvas.delete(self.tk_painting[0])
         self.tk_painting = [self.canvas.create_polygon(*self.coordinates,fill=self.fill, width=self.width, outline=self.color)]
     
-    def __copy__(self):
+    def __copy__(self) -> Stroke:
         stroke = PolygonStroke(*self.coordinates[0], color=self.color, width=self.width, canvas=self.canvas, fill=self.fill, coordinates=self.coordinates)
         return stroke
 
@@ -211,7 +211,7 @@ class TriangleStroke(ShapeStroke):
         mid = (self.coordinates[0][0] + self.coordinates[1][0])//2, self.coordinates[1][1]
         self.tk_painting = [self.canvas.create_polygon([*self.coordinates[0], *mid, self.coordinates[1][0], self.coordinates[0][1]], outline=self.color, fill=self.fill, width=self.width)]
    
-    def __copy__(self):
+    def __copy__(self) -> Stroke:
         stroke = TriangleStroke(*self.coordinates[0], color=self.color, width=self.width, canvas=self.canvas, fill=self.fill, shape=Shape.TRIANGLE)
         stroke.coordinates = self.coordinates
         return stroke

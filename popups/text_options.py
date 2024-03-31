@@ -7,6 +7,8 @@ from helper_funcs.load_available_fonts import load_available_fonts
 from components.color_btn import ColorBtn
 
 class TextOptions(tk.Toplevel):
+    """a popup to change text properties
+    """
     def __init__(self, master, font: str, font_size: int, color:str, on_save: Callable, multiple:bool = False):
         super().__init__(master)
         self.geometry("500x250+150+150")
@@ -23,7 +25,9 @@ class TextOptions(tk.Toplevel):
         
         
     def create_widgets(self) -> None:
-        
+        """create the widget for the popup
+        """
+
         if self.multiple:
             self.warning_label = tk.Label(self, text="Please note that these changes will affect all selected shapes and freestyle strokes.")
             self.warning_label.grid(row=0, column=0, columnspan=4, pady=10)            
@@ -79,6 +83,8 @@ class TextOptions(tk.Toplevel):
         self.font_listbox.bind("<Double-Button-1>", self.on_select_font)
         
     def save_changes(self) -> None:
+        """save the changes and close the popup
+        """
         self.on_save(font=self.font_entry.get(), font_size=self.font_size_spinbox.get() if len(self.font_size_spinbox.get()) else self.font_size, color=self.color)
         self.destroy()
 

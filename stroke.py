@@ -1,11 +1,20 @@
 from typing import *
-from enums import LineStyle, Shape
+from enums import Shape
 import tkinter as tk
-import numpy as np
 
 class Stroke():
-    def __init__(self, x: int, y: int,  line_style: LineStyle, color: str, width: int, canvas: tk.Canvas) -> None:
-        self.line_style = line_style
+    """
+    Abstract base class representing a stroke.
+
+    Attributes:
+        color (str): The color of the stroke.
+        coordinates (List[Tuple[int, int]]): The coordinates of the stroke.
+        width (int): The width of the stroke.
+        tk_painting (List[int]): The Tkinter IDs of the drawn elements.
+        canvas (tk.Canvas): The canvas on which the stroke is drawn.
+    """
+
+    def __init__(self, x: int, y: int, color: str, width: int, canvas: tk.Canvas) -> None:
         self.color = color
         self.coordinates: List[Tuple[int, int]] = [(x, y)]
         self.width = width
@@ -13,25 +22,31 @@ class Stroke():
         self.canvas = canvas
 
     def delete(self) -> None:
+        """Deletes the stroke from the canvas."""
         for line in self.tk_painting:
             self.canvas.delete(line)
     
     def paint(self) -> None:
+        """Paints the stroke on the canvas."""
         pass
     
     def move(self, dx:int, dy:int) -> None:
+        """Moves the stroke by the specified offset."""
         self.coordinates = [(co[0] + dx, co[1] + dy) for co in self.coordinates]
         self.paint()
 
     
     def continue_stroke(self, x: int, y: int) -> None:
+        """Continues the stroke."""
         pass
     
     
 
 class FreeStyleStroke(Stroke):
-    def __init__(self, x: int, y: int, line_style: LineStyle, color: str, width: int, canvas: tk.Canvas):
-        super().__init__(x, y, line_style, color, width, canvas) 
+    """a freestyle stroke
+    """
+    def __init__(self, x: int, y: int, color: str, width: int, canvas: tk.Canvas):
+        super().__init__(x, y, color, width, canvas) 
         self.prev_x = x
         self.prev_y = y
 
@@ -52,45 +67,22 @@ class FreeStyleStroke(Stroke):
                                         x, y,
                                         fill=self.color,
                                         width=self.width)
-        # self.canvas.create_oval(x-2, y-2, x+2, y+2, outline="red")
-        # line = self.canvas.create_oval(x-(self.width//2), y - self.width//2, x + self.width//2, y+self.width//2, fill=self.color, outline=self.color)
         self.tk_painting.append(line)
         self.coordinates.append((x,y))
-        # line_pixels = linewidthpixels(self.width, self.prev_x, self.prev_y, x, y)
-        # for i in range(0, len(line_pixels), 2):
-        #     self.coordinates.append((line_pixels[i], line_pixels[i+1]))
-        # self.coordinates += line_pixels
-        # for i in range(x-self.width//2, x+(self.width//2)+1):
-        #     for j in range(y-self.width//2, y+(self.width//2)+1):
-        #         if (x-i)**2 + (y-j)**2 <= (self.width/2):
-        #             self.img.put(self.color, to=(i, j))      
-        #             self.coordinates.append((i,j))
-              
-        # self.coordinates.append((x, y))
-        # m1, b1 = find_graph(self.prev_x - self.width//2, self.prev_y, x, y - self.width//2)
-        # m2, b2 = find_graph(self.prev_x + self.width//2, self.prev_y, x, y + self.width//2)
-        # range_x = range(self.prev_x, x) if x>self.prev_x else range(x, self.prev_x)
-        # range_y = range(self.prev_y, y) if y>self.prev_y else range(y, self.prev_y)
-        # for i in range_x:
-        #     for j in range_y:   
-        #         d1 = distance_point(i, j, m1, b1)
-        #         d2 = distance_point(i, j, m2, b2)
-                
-        #         if not (m1 !=0 and m2 != 0 and ((d1 < 0 and d2 < 0) or (d1 > 0 and d2 > 0))):
-        #             self.img.put(self.color, to=(i, j))
-        #             self.coordinates.append((i, j))
         self.prev_x = x
         self.prev_y = y
         
     def __copy__(self):
-        stroke =  FreeStyleStroke(self.coordinates[0], self.coordinates[1], line_style=self.line_style, color=self.color, width=self.width, canvas=self.canvas)
+        stroke =  FreeStyleStroke(self.coordinates[0], self.coordinates[1], color=self.color, width=self.width, canvas=self.canvas)
         stroke.coordinates = self.coordinates
         return stroke
 
 
 class ShapeStroke(Stroke):
-    def __init__(self, x: int, y: int, line_style: LineStyle, color: str, width: int, canvas: tk.Canvas, fill: str, shape:Shape):
-        super().__init__(x, y, line_style, color, width, canvas)
+    """a shape stroke - rectangle or oval
+    """
+    def __init__(self, x: int, y: int, color: str, width: int, canvas: tk.Canvas, fill: str, shape:Shape):
+        super().__init__(x, y, color, width, canvas)
         self.shape: Shape = shape
         self.fill = fill
         
@@ -110,14 +102,16 @@ class ShapeStroke(Stroke):
             self.tk_painting = [self.canvas.create_rectangle( *self.coordinates[0],*self.coordinates[1], outline=self.color, width=self.width, fill=self.fill)]
     
     def __copy__(self):
-        stroke =  ShapeStroke(self.coordinates[0], self.coordinates[1], line_style=self.line_style, color=self.color, width=self.width, canvas=self.canvas, shape=self.shape, fill=self.fill,)
+        stroke =  ShapeStroke(self.coordinates[0], self.coordinates[1], color=self.color, width=self.width, canvas=self.canvas, shape=self.shape, fill=self.fill,)
         stroke.coordinates = self.coordinates
         return stroke
 
 
 class TextStroke(Stroke):
-    def __init__(self, x: int, y: int, line_style: LineStyle, color: str, width: int, canvas: tk.Canvas,font:str, font_size:int, text:str = ""):
-        super().__init__(x, y, line_style, color, width, canvas)
+    """a text stroke
+    """
+    def __init__(self, x: int, y: int, color: str, width: int, canvas: tk.Canvas,font:str, font_size:int, text:str = ""):
+        super().__init__(x, y, color, width, canvas)
         self.text: str = text
         self.font_size = font_size
         self.font = font
@@ -140,13 +134,14 @@ class TextStroke(Stroke):
             
 
     def __copy__(self):
-        stroke =  TextStroke(*self.coordinates[0], line_style=self.line_style, color=self.color, width=self.width, canvas=self.canvas, text=self.text)
+        stroke =  TextStroke(*self.coordinates[0], color=self.color, width=self.width, canvas=self.canvas, text=self.text)
         return stroke
 
 class PolygonStroke(Stroke):
-    
-    def __init__(self, x: int, y: int, line_style: LineStyle, color: str, width: int, canvas: tk.Canvas,fill:str, coordinates: List[Tuple[int, int]]) -> None:
-        super().__init__(x, y, line_style, color, width, canvas)
+    """a polygon stroke
+    """
+    def __init__(self, x: int, y: int, color: str, width: int, canvas: tk.Canvas,fill:str, coordinates: List[Tuple[int, int]]) -> None:
+        super().__init__(x, y, color, width, canvas)
         self.coordinates = coordinates
         self.fill = fill
         
@@ -157,16 +152,18 @@ class PolygonStroke(Stroke):
         self.tk_painting = [self.canvas.create_polygon(*self.coordinates,fill=self.fill, width=self.width, outline=self.color)]
     
     def __copy__(self):
-        stroke = PolygonStroke(*self.coordinates[0], line_style=self.line_style, color=self.color, width=self.width, canvas=self.canvas, fill=self.fill, coordinates=self.coordinates)
+        stroke = PolygonStroke(*self.coordinates[0], color=self.color, width=self.width, canvas=self.canvas, fill=self.fill, coordinates=self.coordinates)
         return stroke
 
 
 
 class UnfinishedPolygonStroke(Stroke):
+    """an unfinished polygon - used only to create a polygon stroke.
+    """
     
-    def __init__(self, x: int, y: int, line_style: LineStyle, color: str, width: int, canvas: tk.Canvas, fill:str) -> None:
+    def __init__(self, x: int, y: int, color: str, width: int, canvas: tk.Canvas, fill:str) -> None:
         self.fill = fill
-        super().__init__(x, y, line_style, color, width, canvas)
+        super().__init__(x, y, color, width, canvas)
     
     def continue_stroke(self, x: int, y: int) -> None:
         self.tk_painting.append(self.canvas.create_line(*self.coordinates[-1], x, y, fill=self.color, width=self.width))
@@ -183,13 +180,15 @@ class UnfinishedPolygonStroke(Stroke):
     def finish(self) -> PolygonStroke:
         for painting in self.tk_painting:
             self.canvas.delete(painting)
-        stroke = PolygonStroke(0, 0, self.line_style, self.color, self.width, self.canvas, self.fill, self.coordinates)
+        stroke = PolygonStroke(0, 0, self.color, self.width, self.canvas, self.fill, self.coordinates)
         stroke.paint()
         return stroke
         
 
 
 class TriangleStroke(ShapeStroke):
+    """a triangle stroke
+    """
     def continue_stroke(self, x: int, y: int) -> None:
         self.coordinates = [self.coordinates[0]] + [(x, y)]
         self.paint()

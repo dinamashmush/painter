@@ -1,29 +1,18 @@
 import tkinter as tk
 import os.path
-from PIL import ImageGrab, Image, ImageDraw
 from canvasvg import saveall # type: ignore
 from typing import * 
-
-def export_to_png(canvas: tk.Canvas, root) -> None:
-    if is_partially_off_screen(root):
-        error_popup(root, "to save as png, please make sure all of your window is visible and try again")
-        return
-    x = root.winfo_rootx() + 50
-    y = root.winfo_rooty() + 30
-    img = ImageGrab.grab()
-    img = img.crop((x, y, (x + canvas.winfo_width())
-                   , (y + canvas.winfo_height())))
-    i = 1
-    while True:
-        if os.path.isfile(f"image{i}.png"):
-            i += 1
-        else:
-            img.save(f"image{i}.png")
-            break
 
 
 
 def export_to_svg(canvas: tk.Canvas, root) -> None:
+    """
+    Export the canvas to SVG format.
+
+    Args:
+        canvas (tk.Canvas): The canvas to export.
+        root: The root window.
+    """
     try:
         iter(canvas.bbox("all"))
     except TypeError:
@@ -42,6 +31,13 @@ def export_to_svg(canvas: tk.Canvas, root) -> None:
 
 
 def export_to_eps(canvas: tk.Canvas) -> None:
+    """
+    Export the canvas to EPS format.
+
+    Args:
+        canvas (tk.Canvas): The canvas to export.
+    """
+
     i = 1
     while True:
         if os.path.isfile(f"image{i}.eps"):
@@ -51,22 +47,15 @@ def export_to_eps(canvas: tk.Canvas) -> None:
             break
 
 
-def is_partially_off_screen(window):
-    win_x = window.winfo_x()
-    win_y = window.winfo_y()
-    win_width = window.winfo_width()
-    win_height = window.winfo_height()
-
-    screen_width = window.winfo_screenwidth()
-    screen_height = window.winfo_screenheight()
-
-    return (win_x < 0 or
-            win_y < 0 or
-            win_x + win_width > screen_width or
-            win_y + win_height > screen_height)
-
-
 def error_popup(root, text) -> None:
+        """
+        Display an error popup window.
+
+        Args:
+            root: The root window.
+            text (str): The error message.
+        """
+
         error_frame = tk.Toplevel(root)
         error_frame.grab_set()
         

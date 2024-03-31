@@ -1,16 +1,20 @@
 import tkinter as tk
-from toolbar import ToolBar
+
 from math import *
 from typing import *
-from painter import Painter
-from enums import State
 import sys
+
+from enums import State
+
+from toolbar import ToolBar
+from painter import Painter
 
 from helper_funcs.export_funcs import *
 
-
-
 class Application(tk.Frame):
+    """main application
+    """
+
     def __init__(self, master=None) -> None:
         super().__init__(master)
         self.master = master
@@ -25,6 +29,9 @@ class Application(tk.Frame):
         self.create_widgets()
 
     def create_widgets(self) -> None:
+        """create a painter and a toolbar
+        """
+        
         self.painter = Painter(
             self,
             root=self.master,
@@ -44,7 +51,7 @@ class Application(tk.Frame):
             font_size=self.font_size,
             width=self.width, 
             export={
-            "png": lambda: self.painter.create_pil_img(),
+            "png": self.painter.export_to_png,
             "svg": lambda: export_to_svg(self.painter.canvas, root),
             "eps": lambda: export_to_eps(self.painter.canvas)
             },
@@ -53,30 +60,17 @@ class Application(tk.Frame):
             load_json=self.painter.restore_data_from_json,
             undo=self.painter.undo,
             redo=self.painter.redo)
-        
-        self.frame1 = tk.Frame(
-            self, 
-            width=50, 
-            height=self.master.winfo_height())
-        
-        self.frame2 = tk.Frame(
-            self, 
-            height=30, 
-            width=self.master.winfo_width())
-        
-        self.frame1.grid(column=0, row=1)
-        self.frame2.grid(column=0, row=0)
-
 
 
 if len(sys.argv) >= 2 and sys.argv[1] == "--help":
     print("To run this program, simply run main.py using python3:")
     print("python3 main.py")
-    print("no arguments needed. For more information about the program, see README.")
+    print("no arguments needed.")
+    
+    
 else:
 
     root = tk.Tk()
-
 
     def left_click(event):
         app.painter.handle_left_click(event)

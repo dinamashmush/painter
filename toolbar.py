@@ -13,10 +13,12 @@ from components.icon_button import IconButton
 from popups.load_saved_file import LoadSavedFile
 
 class ToolBar(tk.Frame):
+    """the toolbar - controlling drawing tools and options.
+    """
     def __init__(self, root, color: tk.StringVar, fill:tk.StringVar, state: tk.StringVar, width: tk.IntVar, export: Dict[str, Callable], font: tk.StringVar, font_size: tk.IntVar, delete_all: Callable, save_to_json:Callable, load_json:Callable, undo:Callable, redo:Callable):
         super().__init__(root)
         self.root = root
-        self.grid(row=1, column=2, padx=(10, 0))
+        self.grid(row=1, column=2, padx=(10, 30), pady=(40, 30))
         
         self.color = color
         self.fill = fill
@@ -33,6 +35,14 @@ class ToolBar(tk.Frame):
         self.create_widgets()
         
     def change_selected_state(self, state: str, btn: tk.Button) -> None:
+        """
+        Change the selected drawing state.
+
+        Args:
+            state (str): The new drawing state.
+            btn (tk.Button): The button associated with the new state.
+        """
+
         if self.state.get() == State.PAINT.value and state == State.PAINT.value:
             return
         for button in [self.select_button, self.oval_btn, self.rect_btn, self.text_btn, self.polygon_btn, self.triangle_btn, self.freestyle_button]:
@@ -47,7 +57,10 @@ class ToolBar(tk.Frame):
 
 
     def create_widgets(self) -> None:
-        
+        """
+        Create the toolbar widgets.
+        """
+
         self.export_menu = tk.Menu(self, tearoff=0)
         self.export_menu.add_command(label="png", command=self.export["png"])
         self.export_menu.add_command(label="svg", command=self.export["svg"])
@@ -160,6 +173,9 @@ class ToolBar(tk.Frame):
         self.delete_all_btn.pack()
 
     def create_shapes_btns(self) -> None:
+        """
+        Create buttons for selecting different shapes.
+        """
         
         self.shapes_frame1 = tk.Frame(self)
         self.shapes_frame1.pack()

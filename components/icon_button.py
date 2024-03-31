@@ -4,6 +4,7 @@ from PIL import Image, ImageTk
 from typing import *
 
 class IconButton(tk.Button):
+    """a button with an icon"""
     def __init__(self, master, img_path:str, img_size:int,   command:Callable,text:str="", btn_size:int=0) -> None:
         icon_image = Image.open(img_path)
         resize_icon = icon_image.resize((img_size, img_size))

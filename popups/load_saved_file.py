@@ -3,6 +3,8 @@ from typing import *
 import tkinter as tk
 
 class LoadSavedFile(tk.Toplevel):
+    """a popup to get the name of the file to load
+    """
     def __init__(self, master, load_json:Callable):
         super().__init__(master)
         self.geometry("370x130+300+150")

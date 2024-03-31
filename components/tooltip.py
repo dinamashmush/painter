@@ -1,6 +1,8 @@
 import tkinter as tk
 
 class Tooltip:
+    """a tooltip
+    """
     def __init__(self, widget, text):
         self.widget = widget
         self.text = text

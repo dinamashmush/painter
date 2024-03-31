@@ -5,11 +5,12 @@ from components.color_btn import ColorBtn
 from helper_funcs.validate_funcs import validate_width
 
 class ShapeOptions(tk.Toplevel):
+    """a popup for changing shape properties
+    """
     def __init__(self, master, fill: str, color: str, width: int, on_save:Callable, multiple:bool):
         super().__init__(master)
-        self.geometry("500x250+150+150")
+        self.geometry("500x300+150+150")
         self.grab_set()
-
 
         self.fill = fill
         self.color = color
@@ -20,6 +21,8 @@ class ShapeOptions(tk.Toplevel):
         self.create_widgets()
         
     def create_widgets(self) -> None:
+        """create the widget for the popup
+        """
         
         if self.multiple:
             self.warning_label = tk.Label(self, text="Please note that these changes will affect all selected shapes and freestyle strokes.")
@@ -56,7 +59,6 @@ class ShapeOptions(tk.Toplevel):
         self.width_spinbox = tk.Spinbox(self, from_=1, to=9, validatecommand=(validatecommand,'%P'), validate="all")
         
         self.width_spinbox.delete(0, "end")
-        print("CCDCD", self.width)
         self.width_spinbox.insert(0, str(self.width))
         self.width_spinbox.grid(column=3, row=1, pady=10)
         
@@ -70,6 +72,9 @@ class ShapeOptions(tk.Toplevel):
 
 
     def save_changes(self) -> None:
+        """save the changes and close the popup
+        """
+
         if not len(self.width_spinbox.get()):
             self.warning = tk.Label(self, text="Please Enter a Valid Width", fg="red")
             self.warning.grid(row=2, column=0, columnspan=4)

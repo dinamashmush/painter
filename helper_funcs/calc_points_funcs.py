@@ -62,7 +62,7 @@ def is_point_inside_triangle(point, A, B, C):
 
 def is_point_inside_oval(point, rect_point1, rect_point2):
     """
-    Check if a point is inside an oval given the bounding rectangle.
+Check if a point is inside an oval given the bounding rectangle.
 
     Arguments:
     point: tuple (x, y) - Coordinates of the point to be checked.

@@ -208,3 +208,8 @@ class TriangleStroke(ShapeStroke):
             
         mid = (self.coordinates[0][0] + self.coordinates[1][0])//2, self.coordinates[1][1]
         self.tk_painting = [self.canvas.create_polygon([*self.coordinates[0], *mid, self.coordinates[1][0], self.coordinates[0][1]], outline=self.color, fill=self.fill, width=self.width)]
+   
+    def __copy__(self):
+        stroke = TriangleStroke(*self.coordinates[0], color=self.color, width=self.width, canvas=self.canvas, fill=self.fill, shape=Shape.TRIANGLE)
+        stroke.coordinates = self.coordinates
+        return stroke

@@ -165,7 +165,7 @@ class Painter(tk.Frame):
     def handle_drag(self, event) -> None:
         """handles drag event according to the state, can handle the following states:
         SELECT,
-        DRAW: PAINT, RECT, OVAL, TRIANGLE, POLYGON
+        DRAW: PAINT, RECT, OVAL, TRIANGLE
         
         if in the middle of drawing or selecting or moving, continue the action, else create a new one
 

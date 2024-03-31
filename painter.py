@@ -683,6 +683,7 @@ class Painter(tk.Frame):
         for stroke in self.selected_strokes:
             stroke.delete()
             self.strokes.remove(stroke)
+        self.actions.append(DeleteAction(self.strokes, self.selected_strokes))
         self.remove_select()
 
     def delete_all(self) -> None:

@@ -139,3 +139,18 @@ class LoadJsonAction(Action):
     
     def redo(self):
         return self.undo()
+    
+class DeleteAction(Action):
+    def __init__(self, painter_strokes: List[Stroke], strokes_deleted: List[Stroke]) -> None:
+        super().__init__(painter_strokes)
+        self.strokes = strokes_deleted
+    def undo(self):
+        for stroke in self.strokes:
+            self.painter_strokes.append(stroke)
+            stroke.paint()
+        return DeleteAction(painter_strokes=self.painter_strokes, strokes_deleted=self.strokes)
+    def redo(self):
+        for stroke in self.strokes:
+            self.painter_strokes.remove(stroke)
+            stroke.delete()
+        return DeleteAction(painter_strokes=self.painter_strokes, strokes_deleted=self.strokes)

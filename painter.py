@@ -19,7 +19,7 @@ from popups.text_options import TextOptions
 class Painter(tk.Frame):
     """The Painter class handles the canvas and all actions performed on it
     """
-    def __init__(self, master, root, color: tk.StringVar, fill: tk.StringVar, state: tk.StringVar, width: tk.IntVar, font: tk.StringVar, font_size: tk.IntVar) -> None:
+    def __init__(self, master, root, color: tk.StringVar, fill: tk.StringVar, state: tk.StringVar, bold: tk.BooleanVar, italic: tk.BooleanVar, width: tk.IntVar, font: tk.StringVar, font_size: tk.IntVar) -> None:
         super().__init__(master)
 
         self.grid(row=1, column=1, padx=(50, 0), pady=(40, 40))
@@ -31,13 +31,14 @@ class Painter(tk.Frame):
         self.state = state
         self.font = font
         self.font_size = font_size
+        self.width = width
+        self.italic = italic
+        self.bold = bold
 
         self.strokes: List[Stroke] = []
         self.groups: Set[FrozenSet[Stroke]] = set()
         self.canvas = tk.Canvas(self, width=640, height=480, bg="#000000")
         self.canvas.pack()
-
-        self.width = width
 
         self.curr_stroke: Union[Literal[None], Stroke] = None
 
@@ -377,6 +378,8 @@ class Painter(tk.Frame):
                                 width=self.width.get(), 
                                 canvas=self.canvas, 
                                 font=self.font.get(), 
+                                bold=self.bold.get(),
+                                italic=self.italic.get(),
                                 font_size=self.font_size.get())
         self.strokes.append(new_stroke)
         self.curr_stroke = new_stroke
@@ -518,14 +521,20 @@ class Painter(tk.Frame):
                             font = text_stroke.font
                             font_size = text_stroke.font_size
                             color = text_stroke.color
+                            bold = text_stroke.bold
+                            italic = text_stroke.italic
                         else:
                             font = ""
                             font_size = 14
                             color = ""
+                            bold = False
+                            italic = False
                     else:
                         font = ""
                         color = ""
                         font_size = 14
+                        bold = False
+                        italic = False
 
                     self.selected_menu.add_command(label="Text Properties", 
                                                    command=lambda:
@@ -534,6 +543,8 @@ class Painter(tk.Frame):
                                                                font_size=font_size,
                                                                color=color,
                                                                on_save=self.on_save_text,
+                                                               bold=bold,
+                                                               italic=italic,
                                                                multiple=(len(list(filter(lambda stroke: isinstance(
                                                                    stroke, TextStroke), self.selected_strokes))) != 1)
                                                                ))
@@ -589,7 +600,7 @@ class Painter(tk.Frame):
             finally:
                 self.menu.grab_release()
 
-    def on_save_text(self, font: str, font_size: int, color: str) -> None:
+    def on_save_text(self, font: str, font_size: int, color: str, bold: bool, italic: bool) -> None:
         """
         Update font, font size, and color of selected text strokes after save on TextOptions.
 
@@ -606,13 +617,17 @@ class Painter(tk.Frame):
             changed_strokes.append(text_stroke)
             og_props.append({"font": text_stroke.font,
                              "font_size": text_stroke.font_size, 
-                             "color": text_stroke.color})
+                             "color": text_stroke.color,
+                             "bold": text_stroke.bold,
+                             "italic": text_stroke.italic})
             fonts = load_available_fonts()
             if font in fonts:
                 text_stroke.font = font
             else:
                 text_stroke.font = "Arial"
             text_stroke.font_size = font_size
+            text_stroke.bold = bold
+            text_stroke.italic = italic
             if len(color):
                 text_stroke.color = color
         self.undo_actions = []
@@ -699,6 +714,8 @@ class Painter(tk.Frame):
             if self.text_index >= len(self.curr_stroke.text):
                 return
             self.text_index += 1
+        elif event.keysym == "Return":
+            return
         elif event.char:
             self.curr_stroke.add_char(event.char, self.text_index)
             self.text_index += 1
@@ -716,6 +733,8 @@ class Painter(tk.Frame):
             "font": stroke.font if hasattr(stroke, "font") else "",
             "font_size": stroke.font_size if hasattr(stroke, "font_size") else "",
             "shape": stroke.shape.name if hasattr(stroke, "shape") else "",
+            "italic": stroke.italic if hasattr(stroke, "italic") else "",
+            "bold": stroke.bold if hasattr(stroke, "bold") else "",
             "text": stroke.text if hasattr(stroke, "text") else ""
         } for stroke in self.strokes]
 
@@ -762,6 +781,8 @@ class Painter(tk.Frame):
                                    width=stroke["width"], 
                                    canvas=self.canvas, 
                                    font=stroke["font"], 
+                                   bold=stroke["bold"],
+                                   italic=stroke["italic"],
                                    font_size=stroke["font_size"], 
                                    text=stroke["text"])
                 elif stroke["type"] == "ShapeStroke":
@@ -784,7 +805,8 @@ class Painter(tk.Frame):
             self.undo_actions = []
             self.actions.append(LoadJsonAction(self.strokes, old_strokes))
             return True
-        except:
+        except Exception as error:
+            print(error)
             return False
 
     def export_to_png(self) -> None:
@@ -826,8 +848,13 @@ class Painter(tk.Frame):
                         (*stroke.coordinates[i-1], *co), fill=stroke.color, width=stroke.width)
            
             elif isinstance(stroke, TextStroke):
-                font = ImageFont.truetype( f"./assets/fonts/{stroke.font}.ttf", 
-                                          int((stroke.font_size / 72) * 96))
+                font_file = f"./assets/fonts/{stroke.font}"
+                if stroke.bold:
+                    font_file += "-bold"
+                if stroke.italic:
+                    font_file += "-italic"
+                font = ImageFont.truetype( f"{font_file}.ttf", 
+                                          int((stroke.font_size / 72) * 96),)
                 _, descent = font.getmetrics()
                 text_width = font.getmask(stroke.text).getbbox()[2]
                 text_height = font.getmask(stroke.text).getbbox()[3] + descent

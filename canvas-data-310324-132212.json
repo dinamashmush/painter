@@ -1,0 +1,596 @@
+[
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                330,
+                28
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Arial",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": false,
+        "text": "arial"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                325,
+                52
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Arial",
+        "font_size": 14,
+        "shape": "",
+        "italic": true,
+        "bold": false,
+        "text": "arail italic"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                310,
+                80
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Arial",
+        "font_size": 14,
+        "shape": "",
+        "italic": true,
+        "bold": true,
+        "text": "arial italic bold"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                292,
+                108
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Arial",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": true,
+        "text": "arail bold"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                303,
+                132
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Times New Roman",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": true,
+        "text": "times new roman bold"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                289,
+                149
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Times New Roman",
+        "font_size": 14,
+        "shape": "",
+        "italic": true,
+        "bold": true,
+        "text": "times new roman bold iITDMKMDKMCDKMAMMC"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                283,
+                178
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Times New Roman",
+        "font_size": 14,
+        "shape": "",
+        "italic": true,
+        "bold": false,
+        "text": "TIMES NEW ROMAN ITALIC"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                328,
+                206
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Times New Roman",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": false,
+        "text": "REGULAR TIMES NEW ROMAN"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                301,
+                234
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Courier New",
+        "font_size": 14,
+        "shape": "",
+        "italic": true,
+        "bold": false,
+        "text": "CCCCCCFRLWOMOJCMD"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                277,
+                267
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Courier New",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": false,
+        "text": "cdccdcd"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                519,
+                220
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Courier New",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": true,
+        "text": "ckdmkmekwnifncf"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                481,
+                247
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Courier New",
+        "font_size": 14,
+        "shape": "",
+        "italic": true,
+        "bold": true,
+        "text": "kmfkrkencindncmcd"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                80,
+                238
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Helvetica",
+        "font_size": 14,
+        "shape": "",
+        "italic": true,
+        "bold": true,
+        "text": "HELVETICA"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                128,
+                267
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Helvetica",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": true,
+        "text": "\rHELVETICA"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                347,
+                299
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Helvetica",
+        "font_size": 14,
+        "shape": "",
+        "italic": true,
+        "bold": false,
+        "text": "HELVETICA"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                529,
+                284
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Helvetica",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": false,
+        "text": "helvetica"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                109,
+                344
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Calibri",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": false,
+        "text": "calibri"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                196,
+                338
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Calibri",
+        "font_size": 14,
+        "shape": "",
+        "italic": true,
+        "bold": false,
+        "text": "calibri"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                124,
+                308
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Calibri",
+        "font_size": 14,
+        "shape": "",
+        "italic": true,
+        "bold": true,
+        "text": "calibri"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                315,
+                336
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Calibri",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": true,
+        "text": "calibri"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                514,
+                351
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Comic Sans MS",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": true,
+        "text": "comic sans"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                515,
+                318
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Comic Sans MS",
+        "font_size": 14,
+        "shape": "",
+        "italic": true,
+        "bold": true,
+        "text": "comic sans"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                541,
+                384
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Comic Sans MS",
+        "font_size": 14,
+        "shape": "",
+        "italic": true,
+        "bold": false,
+        "text": "comic sans"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                545,
+                412
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Comic Sans MS",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": false,
+        "text": "comic sans"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                331,
+                372
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Impact",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": false,
+        "text": "impact"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                149,
+                381
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Lucida Sans Typewriter",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": false,
+        "text": "lucida"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                279,
+                396
+            ]
+        ],
+        "color": "#ffffff",
+        "fill": "",
+        "width": 3,
+        "font": "Lucida Sans Typewriter",
+        "font_size": 14,
+        "shape": "",
+        "italic": true,
+        "bold": false,
+        "text": "lucida"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                417,
+                416
+            ]
+        ],
+        "color": "#6bd6be",
+        "fill": "",
+        "width": 3,
+        "font": "Lucida Sans Typewriter",
+        "font_size": 14,
+        "shape": "",
+        "italic": true,
+        "bold": true,
+        "text": "lucida"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                413,
+                357
+            ]
+        ],
+        "color": "#6bd6be",
+        "fill": "",
+        "width": 3,
+        "font": "Lucida Sans Typewriter",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": true,
+        "text": "lucida"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                84,
+                421
+            ]
+        ],
+        "color": "#6bd6be",
+        "fill": "",
+        "width": 3,
+        "font": "Century Gothic",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": true,
+        "text": "century gothic"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                273,
+                453
+            ]
+        ],
+        "color": "#6bd6be",
+        "fill": "",
+        "width": 3,
+        "font": "Century Gothic",
+        "font_size": 14,
+        "shape": "",
+        "italic": true,
+        "bold": true,
+        "text": "CENTURY GOTHIC"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                477,
+                446
+            ]
+        ],
+        "color": "#6bd6be",
+        "fill": "",
+        "width": 3,
+        "font": "Century Gothic",
+        "font_size": 14,
+        "shape": "",
+        "italic": true,
+        "bold": false,
+        "text": "century cothis"
+    },
+    {
+        "type": "TextStroke",
+        "coordinates": [
+            [
+                249,
+                422
+            ]
+        ],
+        "color": "#6bd6be",
+        "fill": "",
+        "width": 3,
+        "font": "Century Gothic",
+        "font_size": 14,
+        "shape": "",
+        "italic": false,
+        "bold": false,
+        "text": "gothic"
+    }
+]

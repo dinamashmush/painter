@@ -5,11 +5,12 @@ from typing import *
 from helper_funcs.validate_funcs import validate_font_size
 from helper_funcs.load_available_fonts import load_available_fonts
 from components.color_btn import ColorBtn
+from components.icon_button import IconButton
 
 class TextOptions(tk.Toplevel):
     """a popup to change text properties
     """
-    def __init__(self, master, font: str, font_size: int, color:str, on_save: Callable, multiple:bool = False):
+    def __init__(self, master, font: str, font_size: int, color:str, bold: bool, italic: bool, on_save: Callable, multiple:bool = False):
         super().__init__(master)
         self.geometry("500x250+150+150")
         self.grab_set()
@@ -17,6 +18,9 @@ class TextOptions(tk.Toplevel):
         self.font = font
         self.font_size = font_size
         self.color = color
+        self.bold = bold
+        self.italic = italic
+        
         self.on_save = on_save
         self.multiple = multiple
 
@@ -65,6 +69,29 @@ class TextOptions(tk.Toplevel):
         self.color_btn = ColorBtn(self, text="Color", color=self.color, on_change=set_color)
         self.color_btn.grid(column=3, row=2, pady=(15, 0))
         
+        self.btns_options_frame = tk.Frame(self)
+        self.btns_options_frame.grid(column=3, row=3)
+        def set_italic() -> None:
+            self.italic = not self.italic
+            if self.italic:
+                self.italic_btn.config(relief="sunken")
+            else:
+                self.italic_btn.config(relief="raised")
+        def set_bold() -> None:
+            self.bold = not self.bold
+            if self.bold:
+                self.bold_btn.config(relief="sunken")
+            else:
+                self.bold_btn.config(relief="raised")
+        self.italic_btn = IconButton(self.btns_options_frame, img_path="./assets/italic.png", img_size=16, command=set_italic)
+        self.bold_btn = IconButton(self.btns_options_frame, img_path="./assets/bold.png", img_size=16, command=set_bold)
+        if self.italic:
+            self.italic_btn.configure(relief="sunken")
+        if self.bold:
+            self.bold_btn.configure(relief="sunken")
+        self.italic_btn.pack(padx=3)
+        self.bold_btn.pack(padx=3)
+        
         self.btns_frame = tk.Frame(self)
         self.btns_frame.grid(column=0, row=3, padx=(5, 0), pady=(130, 0))
         
@@ -85,7 +112,11 @@ class TextOptions(tk.Toplevel):
     def save_changes(self) -> None:
         """save the changes and close the popup
         """
-        self.on_save(font=self.font_entry.get(), font_size=self.font_size_spinbox.get() if len(self.font_size_spinbox.get()) else self.font_size, color=self.color)
+        self.on_save(font=self.font_entry.get(), 
+                     font_size=int(self.font_size_spinbox.get()) if len(self.font_size_spinbox.get()) else self.font_size, 
+                     color=self.color,
+                     bold=self.bold,
+                     italic=self.italic)
         self.destroy()
 
     def  on_typing_font(self, event) -> None:

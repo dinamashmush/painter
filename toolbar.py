@@ -15,23 +15,28 @@ from popups.load_saved_file import LoadSavedFile
 class ToolBar(tk.Frame):
     """the toolbar - controlling drawing tools and options.
     """
-    def __init__(self, root, color: tk.StringVar, fill:tk.StringVar, state: tk.StringVar, width: tk.IntVar, export: Dict[str, Callable], font: tk.StringVar, font_size: tk.IntVar, delete_all: Callable, save_to_json:Callable, load_json:Callable, undo:Callable, redo:Callable):
+    def __init__(self, root, color: tk.StringVar, fill:tk.StringVar, state: tk.StringVar, width: tk.IntVar, bold: tk.BooleanVar, italic: tk.BooleanVar, export: Dict[str, Callable], font: tk.StringVar, font_size: tk.IntVar, delete_all: Callable, save_to_json:Callable, load_json:Callable, undo:Callable, redo:Callable):
         super().__init__(root)
         self.root = root
         self.grid(row=1, column=2, padx=(10, 30), pady=(40, 30))
         
         self.color = color
         self.fill = fill
-        self.state = state
         self.width = width
-        self.export = export
         self.font = font
         self.font_size = font_size
+        self.italic = italic
+        self.bold = bold
+
+        self.state = state
+        
+        self.export = export
         self.delete_all = delete_all
         self.save_to_json = save_to_json
         self.load_json = load_json
         self.undo = undo
         self.redo = redo
+        
         self.create_widgets()
         
     def change_selected_state(self, state: str, btn: tk.Button) -> None:
@@ -152,7 +157,7 @@ class ToolBar(tk.Frame):
         self.text_btn = IconButton(self.text_frame, img_path="./assets/icons-text.png",img_size=24, command=lambda: self.change_selected_state(State.TEXT.value, self.text_btn))
         self.text_btn.pack(side=tk.LEFT, padx=5)
         
-        def on_save(font:str, font_size:int, color:str):
+        def on_save(font:str, font_size:int, color:str, bold: bool, italic: bool):
             fonts = load_available_fonts()
             if font in fonts:
                 self.font.set(font)
@@ -161,8 +166,18 @@ class ToolBar(tk.Frame):
 
             self.font_size.set(font_size)
             self.color.set(color)
+            self.bold.set(bold)
+            self.italic.set(italic)
         
-        self.text_options_btn = tk.Button(self.text_frame,command=lambda: TextOptions(self.root, color=self.color.get(), font_size=self.font_size.get(), font=self.font.get(), on_save=on_save), text="Text\nOptions")
+        self.text_options_btn = tk.Button(self.text_frame,
+                                          command=lambda: TextOptions(self.root, 
+                                                                      color=self.color.get(), 
+                                                                      font_size=self.font_size.get(), 
+                                                                      font=self.font.get(),
+                                                                      bold=self.bold.get(),
+                                                                      italic=self.italic.get(),
+                                                                      on_save=on_save), 
+                                          text="Text\nOptions")
         self.text_options_btn.pack(side=tk.LEFT)
 
         self.separator3 = tk.Frame(self, height=1,background="gray")

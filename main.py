@@ -25,6 +25,8 @@ class Application(tk.Frame):
         self.width = tk.IntVar(self, 3)
         self.font = tk.StringVar(self, "Arial")
         self.font_size = tk.IntVar(self, 14)
+        self.bold = tk.BooleanVar(self, False)
+        self.italic = tk.BooleanVar(self, False)
 
         self.create_widgets()
 
@@ -40,7 +42,9 @@ class Application(tk.Frame):
             state=self.state,
             font=self.font,
             font_size=self.font_size,
-            width=self.width)
+            width=self.width,
+            bold=self.bold,
+            italic=self.italic)
 
         self.toolbar = ToolBar(
             self, 
@@ -50,6 +54,8 @@ class Application(tk.Frame):
             font=self.font,
             font_size=self.font_size,
             width=self.width, 
+            bold=self.bold,
+            italic=self.italic,
             export={
             "png": self.painter.export_to_png,
             "svg": lambda: export_to_svg(self.painter.canvas, root),

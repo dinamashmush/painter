@@ -110,11 +110,13 @@ class ShapeStroke(Stroke):
 class TextStroke(Stroke):
     """a text stroke
     """
-    def __init__(self, x: int, y: int, color: str, width: int, canvas: tk.Canvas,font:str, font_size:int, text:str = ""):
+    def __init__(self, x: int, y: int, color: str, width: int, canvas: tk.Canvas,font:str, font_size:int, bold:bool, italic:bool, text:str = ""):
         super().__init__(x, y, color, width, canvas)
         self.text: str = text
         self.font_size = font_size
         self.font = font
+        self.bold = bold
+        self.italic = italic
         self.paint()
     
     def add_char(self, char:str, index:int) -> None:
@@ -130,7 +132,12 @@ class TextStroke(Stroke):
     def paint(self) -> None:
         if len(self.tk_painting):
             self.canvas.delete(self.tk_painting[0])
-        self.tk_painting = [self.canvas.create_text(*self.coordinates[0], text=self.text, fill=self.color, font=(self.font,self.font_size))]
+        font = [self.font,self.font_size]
+        if self.bold:
+            font.append("bold")
+        if self.italic:
+            font.append("italic")
+        self.tk_painting = [self.canvas.create_text(*self.coordinates[0], text=self.text, fill=self.color, font=font)]
             
 
     def __copy__(self):

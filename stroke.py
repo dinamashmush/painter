@@ -142,6 +142,8 @@ class TextStroke(Stroke):
 
     def __copy__(self):
         stroke = TextStroke(*self.coordinates[0], color=self.color, width=self.width, canvas=self.canvas, text=self.text, bold=self.bold, italic=self.italic, font=self.font, font_size=self.font_size)
+        stroke.delete()
+        stroke.tk_painting = []
         return stroke
 
 class PolygonStroke(Stroke):
